@@ -12,7 +12,8 @@ function createApp(testMode = false) {
   const slack = new WebClient(config.SLACK_BOT_TOKEN);
   const scheduler = new Scheduler(testMode);
 
-  app.use(express.json());
+  // application/x-www-form-urlencoded パーサーを使用
+  app.use(express.urlencoded({ extended: true }));
 
   app.post('/slack/events', (req, res) => {
     if (req.body.type === 'url_verification') {
@@ -34,10 +35,38 @@ function createApp(testMode = false) {
       });
   
       res.status(200).send('Event received');
-  
     } else {
       res.status(200).send('OK');
     }
+  });
+
+  app.post('/slack/interactive', async (req, res) => {
+    console.log('Received interactive payload:', req.body);
+    let payload;
+    
+    try {
+      payload = JSON.parse(req.body.payload);
+      console.log('Parsed payload:', payload);
+    } catch (error) {
+      console.error('Error parsing payload:', error);
+      return res.status(400).send('Invalid payload');
+    }
+    
+    if (payload.type === 'block_actions') {
+      const action = payload.actions[0];
+      console.log('Action:', action);
+      try {
+        if (action.action_id === 'add_goal') {
+          await goalSetting.handleGoalSubmission(payload, slack, config.SLACK_CHANNEL_ID);
+        } else if (action.action_id === 'finalize_goals') {
+          await goalSetting.finalizeGoalSetting(payload, slack, config.SLACK_CHANNEL_ID);
+        }
+      } catch (error) {
+        console.error('Error handling action:', error);
+      }
+    }
+
+    res.status(200).send('');
   });
 
   const scheduleGoalSetting = scheduler.scheduleJob(
@@ -47,14 +76,14 @@ function createApp(testMode = false) {
       goalSetting.initiateGoalSetting(slack, config.SLACK_CHANNEL_ID);
     }
   );
-
-  const scheduleWeeklyReport = scheduler.scheduleJob(
-    config.WEEKLY_REPORT_CRON,
-    () => {
-      console.log('Generating weekly report...');
-      weeklyReport.generateWeeklyReport(slack, config.SLACK_CHANNEL_ID);
-    }
-  );
+  
+  // const scheduleWeeklyReport = scheduler.scheduleJob(
+  //   config.WEEKLY_REPORT_CRON,
+  //   () => {
+  //     console.log('Generating weekly report...');
+  //     weeklyReport.generateWeeklyReport(slack, config.SLACK_CHANNEL_ID);
+  //   }
+  // );
 
   return { app, scheduler };
 }
