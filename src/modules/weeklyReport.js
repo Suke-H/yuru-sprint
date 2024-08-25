@@ -1,47 +1,48 @@
-const { weeklyReportMessage } = require('../messages/weeklyReportMessage');
 const { detectStatuses } = require('./statusDetector');
 
 async function generateWeeklyReport(slack, channelId) {
-    // try {
-    //   await slack.chat.postMessage({
-    //     channel: channelId,
-    //     ...weeklyReportMessage
-    //   });
-    //   console.log('Weekly report message sent successfully');
-    // } catch (error) {
-    //   console.error('Error sending weekly report message:', error);
-    // }
-
-    try {
-      console.log('Generating weekly report...');
-      
-      const goalStatuses = await detectStatuses(slack, channelId);
-      
-      if (goalStatuses.length === 0) {
-        console.log('No goals found for the week');
-        return;
-      }
-  
-      console.log('Weekly Goal Statuses:');
-      goalStatuses.forEach((goal, index) => {
-        console.log(`${index + 1}. ${goal.text} (${goal.emoji}): ${goal.isCompleted ? 'Completed' : 'Not Completed'}`);
+  try {
+    console.log('Generating weekly report...');
+    
+    const goalStatuses = await detectStatuses(slack, channelId);
+    
+    if (goalStatuses.length === 0) {
+      await slack.chat.postMessage({
+        channel: channelId,
+        text: "今週の目標が設定されていませんでした。来週は目標を設定しましょう！"
       });
-  
-      const completedGoals = goalStatuses.filter(goal => goal.isCompleted);
-      const achievementRate = Math.round((completedGoals.length / goalStatuses.length) * 100);
-      
-      console.log(`\nTotal goals: ${goalStatuses.length}`);
-      console.log(`Completed goals: ${completedGoals.length}`);
-      console.log(`Achievement rate: ${achievementRate}%`);
-  
-      console.log('Weekly report generation completed');
-    } catch (error) {
-      console.error('Error generating weekly report:', error);
+      return;
     }
 
+    const reportMessage = formatWeeklyReport(goalStatuses);
 
+    await slack.chat.postMessage({
+      channel: channelId,
+      text: reportMessage
+    });
+
+    console.log('Weekly report sent successfully');
+  } catch (error) {
+    console.error('Error generating weekly report:', error);
   }
+}
+
+function formatWeeklyReport(goalStatuses) {
+  let report = "*今週の目標の振り返り*\n\n";
+
+  goalStatuses.forEach((goal, index) => {
+    const statusEmoji = goal.isCompleted ? "✅" : "⬜";
+    report += `${index + 1}. :${goal.emoji}: ${goal.text} ${statusEmoji}\n`;
+  });
+
+  const completedGoals = goalStatuses.filter(goal => goal.isCompleted);
+  const achievementRate = Math.round((completedGoals.length / goalStatuses.length) * 100);
+
+  report += `\n全体の達成率: ${achievementRate}%\n`;
   
-  module.exports = {
-    generateWeeklyReport
-  };
+  return report;
+}
+
+module.exports = {
+  generateWeeklyReport
+};
