@@ -41,7 +41,7 @@ const goalSettingMessage = {
                 type: "plain_text",
                 text: "🎯 Target"
               },
-              value: "target"
+              value: "dart"
             },
             {
               text: {
@@ -138,7 +138,7 @@ const goalSettingMessage = {
         type: "context",
         elements: goals.map(goal => ({
           type: "mrkdwn",
-          text: `${goal.emoji} ${goal.text}`
+          text: `:${goal.emoji}: ${goal.text}`
         }))
       };
     }

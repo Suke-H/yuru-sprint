@@ -18,15 +18,11 @@ async function initiateGoalSetting(slack, channelId) {
 
 async function handleGoalSubmission(payload, slack, channelId) {
   const goalText = payload.state.values.goal_input.goal_value.value;
-  const emojiValue = payload.state.values.emoji_input.emoji_value.selected_option.value;
-  const emoji = getEmojiFromValue(emojiValue);
+  const emoji = payload.state.values.emoji_input.emoji_value.selected_option.value;
 
   currentGoals.push({ text: goalText, emoji: emoji });
 
-  // payloadからチャンネルIDを動的に取得
-  // const dynamicChannelId = payload.channel.id;
-  const dynamicChannelId = channelId;
-  // console.log('Dynamic channel ID:', dynamicChannelId); 
+  const dynamicChannelId = payload.channel.id;
 
   console.log('Updating message with:', {
     channel: dynamicChannelId,
@@ -50,33 +46,41 @@ async function handleGoalSubmission(payload, slack, channelId) {
 async function finalizeGoalSetting(payload, slack, channelId) {
   const goalListText = formatGoalList(currentGoals);
   try {
-    await slack.chat.postMessage({
+    const result = await slack.chat.postMessage({
       channel: channelId,
       text: `今週の目標です：\n${goalListText}`
     });
+    
+    // 各目標の絵文字でリアクションを追加
+    for (const goal of currentGoals) {
+      await addReactionToMessage(slack, channelId, result.ts, goal.emoji);
+    }
+    
     await slack.chat.delete({
       channel: channelId,
       ts: payload.message.ts
     });
-    console.log('Final goal list sent successfully');
+    console.log('Final goal list sent successfully with reactions');
   } catch (error) {
-    console.error('Error sending final goal list:', error);
+    console.error('Error sending final goal list or adding reactions:', error);
+  }
+}
+
+async function addReactionToMessage(slack, channelId, timestamp, reaction) {
+  try {
+    await slack.reactions.add({
+      channel: channelId,
+      timestamp: timestamp,
+      name: reaction
+    });
+    console.log(`Reaction ${reaction} added successfully`);
+  } catch (error) {
+    console.error('Error adding reaction:', error);
   }
 }
 
 function formatGoalList(goals) {
-  return goals.map((goal, index) => `${index + 1}. ${goal.emoji} ${goal.text}`).join('\n');
-}
-
-function getEmojiFromValue(value) {
-  const emojiMap = {
-    target: "🎯",
-    muscle: "💪",
-    trophy: "🏆",
-    book: "📚",
-    computer: "💻"
-  };
-  return emojiMap[value] || "🔹"; // デフォルト絵文字
+  return goals.map((goal, index) => `${index + 1}. ${goal.text} :${goal.emoji}:`).join('\n');
 }
 
 module.exports = {
