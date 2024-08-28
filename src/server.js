@@ -57,14 +57,27 @@ function createApp(testMode = false) {
       const action = payload.actions[0];
       console.log('Action:', action);
       try {
+        // 週初めに送信した目標設定メッセージにて、目標追加ボタン -> 目標リストに追加して更新
         if (action.action_id === 'add_goal') {
           await goalSetting.handleGoalSubmission(payload, slack, config.SLACK_CHANNEL_ID);
+
+        // 目標リストを確定させる
         } else if (action.action_id === 'finalize_goals') {
           await goalSetting.finalizeGoalSetting(payload, slack, config.SLACK_CHANNEL_ID);
+
+        // 週終わりに送信した週間レポートのフィードバックを受け取る -> Notionに送信
+        } else if (action.action_id === 'submit_reflection') {
+          const blockId = Object.keys(payload.state.values)[0];
+          const userFeedback = payload.state.values[blockId].reflection_input.value;
+        
+          console.log('User feedback:', userFeedback);
+          
+          await weeklyReport.handleUserFeedback(userFeedback, slack, payload.channel.id);
         }
       } catch (error) {
         console.error('Error handling action:', error);
       }
+
     }
 
     res.status(200).send('');
