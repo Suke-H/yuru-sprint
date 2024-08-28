@@ -12,12 +12,13 @@ function createApp(testMode = false) {
   const slack = new WebClient(config.SLACK_BOT_TOKEN);
   const scheduler = new Scheduler(testMode);
 
-  // application/x-www-form-urlencoded パーサーを使用
-  app.use(express.urlencoded({ extended: true }));
+  // 2つのパーサーを利用
+  app.use(express.json());                          // events API
+  app.use(express.urlencoded({ extended: true }));  // interactive API
 
   app.post('/slack/events', (req, res) => {
     if (req.body.type === 'url_verification') {
-      res.send(req.body.challenge);
+      res.status(200).send(req.body.challenge);
     } else if (req.body.event && req.body.event.type === 'app_mention') {
       console.log('App was mentioned!');
 
@@ -77,13 +78,13 @@ function createApp(testMode = false) {
   //   }
   // );
   
-  const scheduleWeeklyReport = scheduler.scheduleJob(
-    config.WEEKLY_REPORT_CRON,
-    () => {
-      console.log('Generating weekly report...');
-      weeklyReport.generateWeeklyReport(slack, config.SLACK_CHANNEL_ID);
-    }
-  );
+  // const scheduleWeeklyReport = scheduler.scheduleJob(
+  //   config.WEEKLY_REPORT_CRON,
+  //   () => {
+  //     console.log('Generating weekly report...');
+  //     weeklyReport.generateWeeklyReport(slack, config.SLACK_CHANNEL_ID);
+  //   }
+  // );
 
   return { app, scheduler };
 }
