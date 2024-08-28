@@ -1,15 +1,37 @@
-const weeklyReportMessage = {
-    text: "今週の振り返りをしましょう！",
+function weeklyReportMessage(formattedGoals, achievementRate) {
+  return {
     blocks: [
       {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: "*今週の振り返り*\n今週の目標達成状況を確認し、感想を入力してください。"
+          text: "*今週の目標の振り返り*"
+        }
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: formattedGoals
+        }
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `全体の達成率: ${achievementRate}%`
+        }
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: "今週の振り返りをしましょう！\n今週の目標達成状況を確認し、感想を入力してください。"
         }
       },
       {
         type: "input",
+        block_id: "reflection_input",
         element: {
           type: "plain_text_input",
           action_id: "reflection_input",
@@ -34,12 +56,20 @@ const weeklyReportMessage = {
             action_id: "submit_reflection"
           }
         ]
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "plain_text",
+            text: JSON.stringify({ formattedGoals, achievementRate })
+          }
+        ]
       }
     ]
   };
-  
-  // 他のメッセージ定義もここに追加できます
-  
-  module.exports = {
-    weeklyReportMessage
-  };
+}
+
+module.exports = {
+  weeklyReportMessage
+};
