@@ -67,12 +67,17 @@ function createApp(testMode = false) {
 
         // 週終わりに送信した週間レポートのフィードバックを受け取る -> Notionに送信
         } else if (action.action_id === 'submit_reflection') {
-          const blockId = Object.keys(payload.state.values)[0];
-          const userFeedback = payload.state.values[blockId].reflection_input.value;
+          const userFeedback = payload.state.values.reflection_input.reflection_input.value;
+          const hiddenGoalsData = JSON.parse(payload.message.blocks[payload.message.blocks.length - 1].elements[0].text);
         
           console.log('User feedback:', userFeedback);
+          console.log('Hidden goals data:', hiddenGoalsData);
           
-          await weeklyReport.handleUserFeedback(userFeedback, slack, payload.channel.id);
+          if (!userFeedback) {
+            throw new Error('User feedback is empty');
+          }
+          
+          await weeklyReport.handleUserFeedback(userFeedback, hiddenGoalsData, slack, payload.channel.id);
         }
       } catch (error) {
         console.error('Error handling action:', error);
@@ -91,13 +96,13 @@ function createApp(testMode = false) {
   //   }
   // );
   
-  // const scheduleWeeklyReport = scheduler.scheduleJob(
-  //   config.WEEKLY_REPORT_CRON,
-  //   () => {
-  //     console.log('Generating weekly report...');
-  //     weeklyReport.generateWeeklyReport(slack, config.SLACK_CHANNEL_ID);
-  //   }
-  // );
+  const scheduleWeeklyReport = scheduler.scheduleJob(
+    config.WEEKLY_REPORT_CRON,
+    () => {
+      console.log('Generating weekly report...');
+      weeklyReport.generateWeeklyReport(slack, config.SLACK_CHANNEL_ID);
+    }
+  );
 
   return { app, scheduler };
 }

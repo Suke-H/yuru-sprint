@@ -45,14 +45,31 @@ function calculateAchievementRate(goalStatuses) {
   return Math.round((completedGoals.length / goalStatuses.length) * 100);
 }
 
-async function handleUserFeedback(feedback, slack, channelId) {
+async function handleUserFeedback(feedback, hiddenGoalsData, slack, channelId) {
   try {
-    // ダミーデータを使用
-    const completedTasks = "タスク1\nタスク2";
-    const incompleteTasks = "タスク3\nタスク4";
-    const achievementRate = 50;
+    if (!feedback) {
+      throw new Error('Feedback is empty');
+    }
 
-    await sendWeeklyDataToNotion(completedTasks, incompleteTasks, achievementRate, feedback);
+    const { formattedGoals, achievementRate } = hiddenGoalsData;
+    
+    // 完了タスクと未完了タスクを分離
+    const completedTasks = [];
+    const incompleteTasks = [];
+    formattedGoals.split('\n').forEach(goal => {
+      if (goal.includes('✅')) {
+        completedTasks.push(goal.replace('✅', '').trim());
+      } else {
+        incompleteTasks.push(goal.replace('⬜', '').trim());
+      }
+    });
+
+    await sendWeeklyDataToNotion(
+      completedTasks.join('\n') || 'なし',
+      incompleteTasks.join('\n') || 'なし',
+      achievementRate,
+      feedback
+    );
     console.log('Data sent to Notion successfully');
 
     // フィードバックを受け取ったことを確認するメッセージをチャンネルに送信
@@ -62,6 +79,10 @@ async function handleUserFeedback(feedback, slack, channelId) {
     });
   } catch (error) {
     console.error('Error handling user feedback:', error);
+    await slack.chat.postMessage({
+      channel: channelId,
+      text: `エラーが発生しました: ${error.message}`
+    });
     throw error;
   }
 }

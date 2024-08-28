@@ -31,6 +31,7 @@ function weeklyReportMessage(formattedGoals, achievementRate) {
       },
       {
         type: "input",
+        block_id: "reflection_input",
         element: {
           type: "plain_text_input",
           action_id: "reflection_input",
@@ -53,6 +54,15 @@ function weeklyReportMessage(formattedGoals, achievementRate) {
               emoji: true
             },
             action_id: "submit_reflection"
+          }
+        ]
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "plain_text",
+            text: JSON.stringify({ formattedGoals, achievementRate })
           }
         ]
       }
