@@ -1,0 +1,59 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    env:
+      SERVICE_NAME: 'yuru-sprint'
+      REGION: 'asia-northeast1' 
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v1
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.SA_EMAIL }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ secrets.PROJECT_ID }}
+          install_components: 'beta'
+
+      - name: Build Docker image
+        run: |
+          docker build --no-cache -t gcr.io/${{ secrets.PROJECT_ID }}/${{ env.SERVICE_NAME }}:$GITHUB_SHA .
+
+      - name: Push Docker image
+        run: |
+          gcloud auth configure-docker
+          docker push gcr.io/${{ secrets.PROJECT_ID }}/${{ env.SERVICE_NAME }}:$GITHUB_SHA
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image gcr.io/${{ secrets.PROJECT_ID }}/${{ env.SERVICE_NAME }}:$GITHUB_SHA \
+            --platform managed \
+            --region ${{ env.REGION }} \
+            --allow-unauthenticated \
+            --set-env-vars NODE_ENV=production \
+                           SLACK_WEBHOOK_URL=${{ secrets.PRODUCTION_SLACK_WEBHOOK_URL }} \
+                           SLACK_BOT_TOKEN=${{ secrets.PRODUCTION_SLACK_BOT_TOKEN }} \
+                           SLACK_CHANNEL_ID=${{ secrets.PRODUCTION_SLACK_CHANNEL_ID }} \
+                           SLACK_USER_ID=${{ secrets.PRODUCTION_SLACK_USER_ID }} \
+                           NOTION_INTEGRATION_TOKEN=${{ secrets.PRODUCTION_NOTION_INTEGRATION_TOKEN }} \
+                           NOTION_DATABASE_ID=${{ secrets.PRODUCTION_NOTION_DATABASE_ID }}

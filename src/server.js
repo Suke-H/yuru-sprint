@@ -88,13 +88,13 @@ function createApp(testMode = false) {
     res.status(200).send('');
   });
 
-  // const scheduleGoalSetting = scheduler.scheduleJob(
-  //   config.GOAL_SETTING_CRON,
-  //   () => {
-  //     console.log('Initiating goal setting...');
-  //     goalSetting.initiateGoalSetting(slack, config.SLACK_CHANNEL_ID);
-  //   }
-  // );
+  const scheduleGoalSetting = scheduler.scheduleJob(
+    config.GOAL_SETTING_CRON,
+    () => {
+      console.log('Initiating goal setting...');
+      goalSetting.initiateGoalSetting(slack, config.SLACK_CHANNEL_ID);
+    }
+  );
   
   const scheduleWeeklyReport = scheduler.scheduleJob(
     config.WEEKLY_REPORT_CRON,
@@ -109,7 +109,7 @@ function createApp(testMode = false) {
 
 if (require.main === module) {
   const { app } = createApp();
-  const PORT = process.env.PORT || 3000;
+  const PORT = process.env.PORT || 8080;
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
     console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
