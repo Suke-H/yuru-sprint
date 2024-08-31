@@ -88,13 +88,13 @@ function createApp(testMode = false) {
     res.status(200).send('');
   });
 
-  // const scheduleGoalSetting = scheduler.scheduleJob(
-  //   config.GOAL_SETTING_CRON,
-  //   () => {
-  //     console.log('Initiating goal setting...');
-  //     goalSetting.initiateGoalSetting(slack, config.SLACK_CHANNEL_ID);
-  //   }
-  // );
+  const scheduleGoalSetting = scheduler.scheduleJob(
+    config.GOAL_SETTING_CRON,
+    () => {
+      console.log('Initiating goal setting...');
+      goalSetting.initiateGoalSetting(slack, config.SLACK_CHANNEL_ID);
+    }
+  );
   
   const scheduleWeeklyReport = scheduler.scheduleJob(
     config.WEEKLY_REPORT_CRON,

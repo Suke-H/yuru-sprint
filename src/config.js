@@ -1,5 +1,5 @@
 require('dotenv').config();
-const env = process.env.NODE_ENV || 'development';
+const env = process.env.NODE_ENV || 'production';
 
 const config = {
   SLACK_BOT_TOKEN: process.env.SLACK_BOT_TOKEN, 
@@ -13,8 +13,10 @@ const config = {
   },
 
   production: {
-    GOAL_SETTING_CRON: '0 9 * * 0',  // 毎週日曜日の午前9時
-    WEEKLY_REPORT_CRON: '0 17 * * 5' // 毎週金曜日の午後5時
+    // GOAL_SETTING_CRON: '0 9 * * 0',  // 毎週日曜日の午前9時
+    // WEEKLY_REPORT_CRON: '0 17 * * 5' // 毎週金曜日の午後5時
+    GOAL_SETTING_CRON: '*/10 * * * *',   // 10分に1回
+    WEEKLY_REPORT_CRON: '*/10 * * * *'  // 10分に1回
   },
 };
 
