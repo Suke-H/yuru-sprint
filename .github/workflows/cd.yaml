@@ -50,10 +50,12 @@ jobs:
             --platform managed \
             --region ${{ env.REGION }} \
             --allow-unauthenticated \
-            --set-env-vars NODE_ENV=production \
-                           SLACK_WEBHOOK_URL=${{ secrets.PRODUCTION_SLACK_WEBHOOK_URL }} \
-                           SLACK_BOT_TOKEN=${{ secrets.PRODUCTION_SLACK_BOT_TOKEN }} \
-                           SLACK_CHANNEL_ID=${{ secrets.PRODUCTION_SLACK_CHANNEL_ID }} \
-                           SLACK_USER_ID=${{ secrets.PRODUCTION_SLACK_USER_ID }} \
-                           NOTION_INTEGRATION_TOKEN=${{ secrets.PRODUCTION_NOTION_INTEGRATION_TOKEN }} \
-                           NOTION_DATABASE_ID=${{ secrets.PRODUCTION_NOTION_DATABASE_ID }}
+            --set-env-vars "\
+              NODE_ENV=production,\
+              SLACK_WEBHOOK_URL=${{ secrets.PRODUCTION_SLACK_WEBHOOK_URL }},\
+              SLACK_BOT_TOKEN=${{ secrets.PRODUCTION_SLACK_BOT_TOKEN }},\
+              SLACK_CHANNEL_ID=${{ secrets.PRODUCTION_SLACK_CHANNEL_ID }},\
+              SLACK_USER_ID=${{ secrets.PRODUCTION_SLACK_USER_ID }},\
+              NOTION_INTEGRATION_TOKEN=${{ secrets.PRODUCTION_NOTION_INTEGRATION_TOKEN }},\
+              NOTION_DATABASE_ID=${{ secrets.PRODUCTION_NOTION_DATABASE_ID }}\
+            "
