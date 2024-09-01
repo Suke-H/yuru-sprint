@@ -86,3 +86,4 @@ async function detectStatuses(slack, channelId) {
   module.exports = {
     detectStatuses
   };
+  
