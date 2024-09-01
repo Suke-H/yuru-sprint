@@ -150,3 +150,4 @@ const goalSettingMessage = {
     goalSettingMessage,
     updateGoalSettingMessage
   };
+  
