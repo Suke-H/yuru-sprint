@@ -9,7 +9,6 @@ const emojiMapping = {
   rocket: { reaction: 'rocket', notion: '🚀' },
   lipstick: { reaction: 'lipstick', notion: '💄' },
   tada: { reaction: 'tada', notion: '🎉' },
-  white_check_mark: { reaction: 'white_check_mark', notion: '✅' },
   lock: { reaction: 'lock', notion: '🔒️' },
   closed_lock_with_key: { reaction: 'closed_lock_with_key', notion: '🔐' },
   bookmark: { reaction: 'bookmark', notion: '🔖' },
