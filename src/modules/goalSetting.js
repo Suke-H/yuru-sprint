@@ -2,8 +2,7 @@ const _ = require('lodash');
 const { emojiMapping } = require("../utils/emojiMapping");
 const { goalSettingMessage, updateGoalSettingMessage } = require("../messages/goalSettingMessage");
 
-let currentGoals = [];
-const MAX_GOALS = 15; // 最大目標数を定数として定義
+const MAX_GOALS = 15;
 
 function getRandomEmojis(count) {
   const allEmojis = Object.keys(emojiMapping);
@@ -11,20 +10,21 @@ function getRandomEmojis(count) {
 }
 
 async function initiateGoalSetting(slack, channelId) {
-  currentGoals = []; // 目標リストをリセット
   try {
     const result = await slack.chat.postMessage({
       channel: channelId,
       ...goalSettingMessage,
     });
     console.log("Goal setting message sent successfully");
-    return result.ts; // メッセージのタイムスタンプを返す
+    return result.ts;
   } catch (error) {
     console.error("Error sending goal setting message:", error);
   }
 }
 
 async function handleGoalSubmission(payload, slack, channelId) {
+  const currentGoals = await getCurrentGoals(slack, channelId, payload.message.ts);
+
   if (currentGoals.length >= MAX_GOALS) {
     try {
       await slack.chat.postEphemeral({
@@ -39,15 +39,12 @@ async function handleGoalSubmission(payload, slack, channelId) {
   }
 
   const goalText = payload.state.values.goal_input.goal_value.value;
-  const emoji = payload.state.values.emoji_input.emoji_value.selected_option.value;
 
-  currentGoals.push({ text: goalText, emoji: emoji });
-
-  const dynamicChannelId = payload.channel.id;
+  currentGoals.push({ text: goalText });
 
   try {
     const result = await slack.chat.update({
-      channel: dynamicChannelId,
+      channel: channelId,
       ts: payload.message.ts,
       ...updateGoalSettingMessage(currentGoals),
     });
@@ -58,7 +55,25 @@ async function handleGoalSubmission(payload, slack, channelId) {
   }
 }
 
+async function deleteGoal(payload, slack, channelId, index) {
+  const currentGoals = await getCurrentGoals(slack, channelId, payload.message.ts);
+
+  currentGoals.splice(index, 1);
+
+  try {
+    const result = await slack.chat.update({
+      channel: channelId,
+      ts: payload.message.ts,
+      ...updateGoalSettingMessage(currentGoals),
+    });
+    console.log("Goal deleted successfully");
+  } catch (error) {
+    console.error("Error deleting goal:", error);
+  }
+}
+
 async function finalizeGoalSetting(payload, slack, channelId) {
+  const currentGoals = await getCurrentGoals(slack, channelId, payload.message.ts);
   const randomEmojis = getRandomEmojis(currentGoals.length);
   const goalsWithRandomEmoji = currentGoals.map((goal, index) => ({
     text: goal.text,
@@ -107,8 +122,39 @@ function formatGoalList(goals) {
     .join("\n");
 }
 
+async function getCurrentGoals(slack, channelId, messageTs) {
+  try {
+    const result = await slack.conversations.history({
+      channel: channelId,
+      latest: messageTs,
+      inclusive: true,
+      limit: 1
+    });
+
+    if (result.messages && result.messages.length > 0) {
+      const message = result.messages[0];
+      const goalListBlock = message.blocks.find(block => 
+        block.type === "context" && block.elements[0].type === "mrkdwn"
+      );
+
+      if (goalListBlock) {
+        return goalListBlock.elements.map(element => {
+          const match = element.text.match(/\d+\.\s(.+)/);
+          return match ? { text: match[1] } : null;
+        }).filter(Boolean);
+      }
+    }
+
+    return [];
+  } catch (error) {
+    console.error("Error fetching current goals:", error);
+    return [];
+  }
+}
+
 module.exports = {
   initiateGoalSetting,
   handleGoalSubmission,
   finalizeGoalSetting,
+  deleteGoal,
 };
