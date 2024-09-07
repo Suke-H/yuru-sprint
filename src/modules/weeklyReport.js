@@ -7,6 +7,7 @@ async function generateWeeklyReport(slack, channelId) {
     console.log('Generating weekly report...');
 
     const goalStatuses = await detectStatuses(slack, channelId);
+    console.log('Goal statuses:', JSON.stringify(goalStatuses, null, 2));
 
     if (goalStatuses.length === 0) {
       await slack.chat.postMessage({
@@ -16,10 +17,11 @@ async function generateWeeklyReport(slack, channelId) {
       return;
     }
 
-    const formattedGoals = formatGoalStatuses(goalStatuses);
+    // const formattedGoals = formatGoalStatuses(goalStatuses);
     const achievementRate = calculateAchievementRate(goalStatuses);
 
-    const message = weeklyReportMessage(formattedGoals, achievementRate);
+    // const message = weeklyReportMessage(formattedGoals, achievementRate);
+    const message = weeklyReportMessage(goalStatuses, achievementRate);
 
     await slack.chat.postMessage({
       channel: channelId,
@@ -33,36 +35,29 @@ async function generateWeeklyReport(slack, channelId) {
   }
 }
 
-function formatGoalStatuses(goalStatuses) {
-  return goalStatuses.map((goal, index) => {
-    const statusEmoji = goal.isCompleted ? "✅" : "⬜";
-    return `${index + 1}. :${goal.emoji}: ${goal.text} ${statusEmoji}`;
-  }).join('\n');
-}
+// function formatGoalStatuses(goalStatuses) {
+//   return goalStatuses.map((goal, index) => {
+//     const statusEmoji = goal.isCompleted ? "✅" : "⬜";
+//     return `${index + 1}. :${goal.emoji}: ${goal.text} ${statusEmoji}`;
+//   }).join('\n');
+// }
 
 function calculateAchievementRate(goalStatuses) {
   const completedGoals = goalStatuses.filter(goal => goal.isCompleted);
   return Math.round((completedGoals.length / goalStatuses.length) * 100);
 }
 
-async function handleUserFeedback(feedback, hiddenGoalsData, slack, channelId) {
+async function handleUserFeedback(payload, slack, channelId) {
   try {
+    const feedback = payload.state.values.reflection_input.reflection_input.value;
     if (!feedback) {
       throw new Error('Feedback is empty');
     }
 
-    const { formattedGoals, achievementRate } = hiddenGoalsData;
+    const { goals, achievementRate } = JSON.parse(payload.actions[0].value);
     
-    // 完了タスクと未完了タスクを分離
-    const completedTasks = [];
-    const incompleteTasks = [];
-    formattedGoals.split('\n').forEach(goal => {
-      if (goal.includes('✅')) {
-        completedTasks.push(goal.replace('✅', '').trim());
-      } else {
-        incompleteTasks.push(goal.replace('⬜', '').trim());
-      }
-    });
+    const completedTasks = goals.filter(goal => goal.isCompleted).map(goal => `${goal.emoji} ${goal.text}`);
+    const incompleteTasks = goals.filter(goal => !goal.isCompleted).map(goal => `${goal.emoji} ${goal.text}`);
 
     await sendWeeklyDataToNotion(
       completedTasks.join('\n') || 'なし',
@@ -70,9 +65,9 @@ async function handleUserFeedback(feedback, hiddenGoalsData, slack, channelId) {
       achievementRate,
       feedback
     );
+
     console.log('Data sent to Notion successfully');
 
-    // フィードバックを受け取ったことを確認するメッセージをチャンネルに送信
     await slack.chat.postMessage({
       channel: channelId,
       text: "Notionへ送信しました。1週間お疲れ様！"

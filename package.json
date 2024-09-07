@@ -4,7 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "npm run docker:build && npm run docker:run",
+    "stop": "npm run docker:stop && npm run docker:remove-image",
+    "docker:build": "docker build --build-arg NODE_ENV=development -t yuru-sprint:dev .",
+    "docker:run": "docker run --name yuru-sprint --env-file .env.development -d -p 8080:8080 yuru-sprint:dev",
+    "docker:stop": "docker stop yuru-sprint && docker rm yuru-sprint",
+    "docker:remove-image": "docker rmi yuru-sprint:dev"
   },
   "keywords": [],
   "author": "",
