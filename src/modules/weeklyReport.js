@@ -6,8 +6,9 @@ async function generateWeeklyReport(slack, channelId) {
   try {
     console.log('Generating weekly report...');
 
-    const goalStatuses = await detectStatuses(slack, channelId);
+    const { goalStatuses, period } = await detectStatuses(slack, channelId);
     console.log('Goal statuses:', JSON.stringify(goalStatuses, null, 2));
+    console.log('Period:', period);
 
     if (goalStatuses.length === 0) {
       await slack.chat.postMessage({
@@ -19,7 +20,7 @@ async function generateWeeklyReport(slack, channelId) {
 
     const achievementRate = calculateAchievementRate(goalStatuses);
 
-    const message = weeklyReportMessage(goalStatuses, achievementRate);
+    const message = weeklyReportMessage(goalStatuses, achievementRate, period);
 
     await slack.chat.postMessage({
       channel: channelId,
@@ -45,7 +46,8 @@ async function handleUserFeedback(payload, slack, channelId) {
       throw new Error('Feedback is empty');
     }
 
-    const { goals } = JSON.parse(payload.actions[0].value);
+    const { goals, period } = JSON.parse(payload.actions[0].value);
+    console.log('Parsed data:', { goals, period });
     
     const completedTasks = goals.filter(goal => goal.isCompleted).map(goal => `${goal.emoji} ${goal.text}`);
     const incompleteTasks = goals.filter(goal => !goal.isCompleted).map(goal => `${goal.emoji} ${goal.text}`);
@@ -53,7 +55,8 @@ async function handleUserFeedback(payload, slack, channelId) {
     await sendWeeklyDataToNotion(
       completedTasks.join('\n') || 'なし',
       incompleteTasks.join('\n') || 'なし',
-      feedback
+      feedback,
+      period
     );
 
     console.log('Data sent to Notion successfully');
