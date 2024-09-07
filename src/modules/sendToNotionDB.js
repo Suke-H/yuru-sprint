@@ -1,18 +1,12 @@
 const { Client } = require('@notionhq/client');
 const config = require('../config');
 
-// データベースIDのクリーニング：トリムと引用符の除去
+// CI/CD時の問題: database_idに空白と""が含まれるためトリムする
 const cleanDatabaseId = config.NOTION_DATABASE_ID.trim().replace(/"/g, '');
 
 const notion = new Client({ auth: config.NOTION_INTEGRATION_TOKEN });
 
 async function sendWeeklyDataToNotion(completedTasks, incompleteTasks, achievementRate, feedback) {
-  console.log('Starting sendWeeklyDataToNotion function');
-  console.log('Config:', {
-    NOTION_INTEGRATION_TOKEN: config.NOTION_INTEGRATION_TOKEN ? 'Set (not shown for security)' : 'Not set',
-    NOTION_DATABASE_ID: cleanDatabaseId
-  });
-
   try {
     const today = new Date();
     const period = "8/19-8/25";
