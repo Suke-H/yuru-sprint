@@ -5,6 +5,7 @@ const {
 const { emojiMapping } = require("../utils/emojiMapping");
 
 let currentGoals = [];
+const MAX_GOALS = 15; // 最大目標数を定数として定義
 
 async function initiateGoalSetting(slack, channelId) {
   currentGoals = []; // 目標リストをリセット
@@ -21,6 +22,20 @@ async function initiateGoalSetting(slack, channelId) {
 }
 
 async function handleGoalSubmission(payload, slack, channelId) {
+  if (currentGoals.length >= MAX_GOALS) {
+    // 最大目標数に達している場合、エラーメッセージを返す
+    try {
+      await slack.chat.postEphemeral({
+        channel: payload.channel.id,
+        user: payload.user.id,
+        text: `目標の数が上限（${MAX_GOALS}個）に達しています。これ以上追加できません。`,
+      });
+    } catch (error) {
+      console.error("Error sending ephemeral message:", error);
+    }
+    return; // 処理を終了
+  }
+
   const goalText = payload.state.values.goal_input.goal_value.value;
   const emoji =
     payload.state.values.emoji_input.emoji_value.selected_option.value;
