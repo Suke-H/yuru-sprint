@@ -1,7 +1,14 @@
+const { emojiMapping } = require("../utils/emojiMapping");
+
 function weeklyReportMessage(goals, achievementRate, period) {
-  const formattedGoals = goals.map((goal, index) => 
-    `${index + 1}. :${goal.emoji}: ${goal.text} ${goal.isCompleted ? "✅" : "⬜"}`
-  ).join('\n');
+  const formattedGoals = goals
+    .map(
+      (goal, index) =>
+        `${index + 1}. ${emojiMapping[goal.emoji].notion} ${goal.text} ${
+          goal.isCompleted ? "✅" : "⬜"
+        }`
+    )
+    .join("\n");
 
   return {
     blocks: [
@@ -9,22 +16,22 @@ function weeklyReportMessage(goals, achievementRate, period) {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `*今週の目標の振り返り (${period})*`
-        }
+          text: `*今週の目標の振り返り (${period})*`,
+        },
       },
       {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: formattedGoals
-        }
+          text: formattedGoals,
+        },
       },
       {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `全体の達成率: ${achievementRate}%`
-        }
+          text: `全体の達成率: ${achievementRate}%`,
+        },
       },
       {
         type: "input",
@@ -32,13 +39,13 @@ function weeklyReportMessage(goals, achievementRate, period) {
         element: {
           type: "plain_text_input",
           action_id: "reflection_input",
-          multiline: true
+          multiline: true,
         },
         label: {
           type: "plain_text",
           text: "今週の感想",
-          emoji: true
-        }
+          emoji: true,
+        },
       },
       {
         type: "actions",
@@ -48,17 +55,17 @@ function weeklyReportMessage(goals, achievementRate, period) {
             text: {
               type: "plain_text",
               text: "送信",
-              emoji: true
+              emoji: true,
             },
             value: JSON.stringify({ goals, period }),
-            action_id: "submit_reflection"
-          }
-        ]
-      }
-    ]
+            action_id: "submit_reflection",
+          },
+        ],
+      },
+    ],
   };
 }
 
 module.exports = {
-  weeklyReportMessage
+  weeklyReportMessage,
 };
