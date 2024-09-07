@@ -17,8 +17,8 @@ const config = {
     // WEEKLY_REPORT_CRON: '0 17 * * 5' // 毎週金曜日の午後5時
     // GOAL_SETTING_CRON: '0 9 * * *',   // 毎日午前9時
     // WEEKLY_REPORT_CRON: '0 17 * * *'  // 毎日午後5時
-    GOAL_SETTING_CRON: '*/2 * * * *',   // 2分に1回
-    WEEKLY_REPORT_CRON: '*/2 * * * *'  // 2分に1回
+    GOAL_SETTING_CRON: '*/10 * * * *',   // 10分に1回
+    WEEKLY_REPORT_CRON: '*/10 * * * *'  // 10分に1回
   },
 };
 
