@@ -1,11 +1,15 @@
-function weeklyReportMessage(formattedGoals, achievementRate) {
+function weeklyReportMessage(goals, achievementRate, period) {
+  const formattedGoals = goals.map((goal, index) => 
+    `${index + 1}. :${goal.emoji}: ${goal.text} ${goal.isCompleted ? "✅" : "⬜"}`
+  ).join('\n');
+
   return {
     blocks: [
       {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: "*今週の目標の振り返り*"
+          text: `*今週の目標の振り返り (${period})*`
         }
       },
       {
@@ -20,13 +24,6 @@ function weeklyReportMessage(formattedGoals, achievementRate) {
         text: {
           type: "mrkdwn",
           text: `全体の達成率: ${achievementRate}%`
-        }
-      },
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: "今週の振り返りをしましょう！\n今週の目標達成状況を確認し、感想を入力してください。"
         }
       },
       {
@@ -53,16 +50,8 @@ function weeklyReportMessage(formattedGoals, achievementRate) {
               text: "送信",
               emoji: true
             },
+            value: JSON.stringify({ goals, period }),
             action_id: "submit_reflection"
-          }
-        ]
-      },
-      {
-        type: "context",
-        elements: [
-          {
-            type: "plain_text",
-            text: JSON.stringify({ formattedGoals, achievementRate })
           }
         ]
       }

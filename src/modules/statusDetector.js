@@ -1,24 +1,27 @@
 async function detectStatuses(slack, channelId) {
-    try {
-      const weeklyGoals = await getWeeklyGoals(slack, channelId);
-      
-      if (!weeklyGoals || weeklyGoals.length === 0) {
-        console.log("No goals found for the week");
-        return [];
-      }
-  
-      const goalStatuses = await Promise.all(weeklyGoals.map(async (goal) => {
-        const reactions = await getReactions(slack, channelId, goal.messageTs, goal.emoji);
-        const isCompleted = reactions.count >= 2;
-        return { ...goal, isCompleted };
-      }));
-  
-      return goalStatuses;
-    } catch (error) {
-      console.error('Error detecting task statuses:', error);
-      return [];
+  try {
+    const { weeklyGoals, startDate } = await getWeeklyGoals(slack, channelId);
+    
+    if (!weeklyGoals || weeklyGoals.length === 0) {
+      console.log("No goals found for the week");
+      return { goalStatuses: [], period: null };
     }
+
+    const goalStatuses = await Promise.all(weeklyGoals.map(async (goal) => {
+      const reactions = await getReactions(slack, channelId, goal.messageTs, goal.emoji);
+      const isCompleted = reactions.count >= 2;
+      return { ...goal, isCompleted };
+    }));
+
+    const endDate = new Date().toISOString().split('T')[0]; // 今日の日付
+    const period = `${startDate} - ${endDate}`;
+
+    return { goalStatuses, period };
+  } catch (error) {
+    console.error('Error detecting task statuses:', error);
+    return { goalStatuses: [], period: null };
   }
+}
   
   async function getWeeklyGoals(slack, channelId) {
     try {
@@ -43,7 +46,7 @@ async function detectStatuses(slack, channelId) {
   
       if (!goalMessage) {
         console.log("No valid goal message found");
-        return [];
+        return { weeklyGoals: [], startDate: null };
       }
   
       console.log("Found goal message:", goalMessage.text);
@@ -60,11 +63,13 @@ async function detectStatuses(slack, channelId) {
         return null;
       }).filter(Boolean);
   
+      const startDate = new Date(parseInt(goalMessage.ts.split('.')[0]) * 1000).toISOString().split('T')[0];
+  
       console.log("Extracted goals:", goals);
-      return goals;
+      return { weeklyGoals: goals, startDate };
     } catch (error) {
       console.error('Error retrieving weekly goals:', error);
-      return [];
+      return { weeklyGoals: [], startDate: null };
     }
   }
   

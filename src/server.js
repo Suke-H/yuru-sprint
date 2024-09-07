@@ -73,16 +73,12 @@ function createApp(testMode = false) {
         // 週終わりに送信した週間レポートのフィードバックを受け取る -> Notionに送信
         } else if (action.action_id === 'submit_reflection') {
           const userFeedback = payload.state.values.reflection_input.reflection_input.value;
-          const hiddenGoalsData = JSON.parse(payload.message.blocks[payload.message.blocks.length - 1].elements[0].text);
-        
-          console.log('User feedback:', userFeedback);
-          console.log('Hidden goals data:', hiddenGoalsData);
           
           if (!userFeedback) {
             throw new Error('User feedback is empty');
           }
           
-          await weeklyReport.handleUserFeedback(userFeedback, hiddenGoalsData, slack, payload.channel.id);
+          await weeklyReport.handleUserFeedback(payload, slack, payload.channel.id);
         }
       } catch (error) {
         console.error('Error handling action:', error);
