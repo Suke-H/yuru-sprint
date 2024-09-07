@@ -70,6 +70,11 @@ function createApp(testMode = false) {
         } else if (action.action_id === 'finalize_goals') {
           await goalSetting.finalizeGoalSetting(payload, slack, config.SLACK_CHANNEL_ID);
 
+        // 目標リストから1つ目標削除
+        } else if (action.action_id.startsWith('delete_goal_')) {
+          const index = parseInt(action.action_id.split('_')[2]);
+          await goalSetting.deleteGoal(payload, slack, payload.channel.id, index);
+
         // 週終わりに送信した週間レポートのフィードバックを受け取る -> Notionに送信
         } else if (action.action_id === 'submit_reflection') {
           const userFeedback = payload.state.values.reflection_input.reflection_input.value;

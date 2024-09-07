@@ -24,7 +24,7 @@ async function detectStatuses(slack, channelId) {
     );
 
     const endDate = new Date().toISOString().split("T")[0]; // 今日の日付
-    const period = `${startDate} - ${endDate}`;
+    const period = `${startDate} ~ ${endDate}`;
 
     return { goalStatuses, period };
   } catch (error) {
