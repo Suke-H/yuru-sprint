@@ -1,5 +1,7 @@
 require('dotenv').config();
 
+const MAX_GOALS = 15; // 最大目標数を定数として定義
+
 const goalSettingMessage = {
     blocks: [
       {
@@ -127,12 +129,13 @@ const goalSettingMessage = {
   
   function updateGoalSettingMessage(goals) {
     const updatedBlocks = [...goalSettingMessage.blocks];
-    
+  
     // 目標リストの更新
-    const goalListIndex = updatedBlocks.findIndex(block => 
+    const goalListIndex = updatedBlocks.findIndex(block =>
       block.type === "section" && block.text.text === "*今週の目標リスト：*"
     );
   
+    // 目標がある場合はリストを更新
     if (goals.length > 0) {
       updatedBlocks[goalListIndex + 1] = {
         type: "context",
@@ -141,6 +144,17 @@ const goalSettingMessage = {
           text: `:${goal.emoji}: ${goal.text}`
         }))
       };
+    }
+  
+    // 目標数が上限に達した場合のメッセージを追加
+    if (goals.length >= MAX_GOALS) {
+      updatedBlocks.push({
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `:warning: 目標の数が上限（${MAX_GOALS}個）に達しています。これ以上追加できません。`
+        }
+      });
     }
   
     return { blocks: updatedBlocks };
