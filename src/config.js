@@ -8,8 +8,8 @@ const config = {
   NOTION_DATABASE_ID: process.env.NOTION_DATABASE_ID,
 
   development: {
-    GOAL_SETTING_CRON: '*/10 * * * *',   // 10分に1回
-    WEEKLY_REPORT_CRON: '*/10 * * * *'  // 10分に1回
+    GOAL_SETTING_CRON: '*/2 * * * *',   // 2分に1回
+    WEEKLY_REPORT_CRON: '*/2 * * * *'  // 2分に1回
   },
 
   production: {
