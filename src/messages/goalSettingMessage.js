@@ -28,59 +28,6 @@ const goalSettingMessage = {
       }
     },
     {
-      type: "input",
-      block_id: "emoji_input",
-      element: {
-        type: "static_select",
-        action_id: "emoji_value",
-        placeholder: {
-          type: "plain_text",
-          text: "絵文字を選択してください"
-        },
-        options: [
-          {
-            text: {
-              type: "plain_text",
-              text: "🎯 Target"
-            },
-            value: "dart"
-          },
-          {
-            text: {
-              type: "plain_text",
-              text: "💪 Muscle"
-            },
-            value: "muscle"
-          },
-          {
-            text: {
-              type: "plain_text",
-              text: "🏆 Trophy"
-            },
-            value: "trophy"
-          },
-          {
-            text: {
-              type: "plain_text",
-              text: "📚 Book"
-            },
-            value: "book"
-          },
-          {
-            text: {
-              type: "plain_text",
-              text: "💻 Computer"
-            },
-            value: "computer"
-          }
-        ]
-      },
-      label: {
-        type: "plain_text",
-        text: "絵文字"
-      }
-    },
-    {
       type: "actions",
       elements: [
         {
@@ -139,7 +86,7 @@ function updateGoalSettingMessage(goals) {
       type: "context",
       elements: goals.map((goal, index) => ({
         type: "mrkdwn",
-        text: `:${goal.emoji}: ${goal.text}`
+        text: `${index + 1}. ${goal.text}`
       }))
     };
 

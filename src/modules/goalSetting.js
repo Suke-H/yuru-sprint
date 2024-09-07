@@ -39,9 +39,8 @@ async function handleGoalSubmission(payload, slack, channelId) {
   }
 
   const goalText = payload.state.values.goal_input.goal_value.value;
-  const emoji = payload.state.values.emoji_input.emoji_value.selected_option.value;
 
-  currentGoals.push({ text: goalText, emoji: emoji });
+  currentGoals.push({ text: goalText });
 
   try {
     const result = await slack.chat.update({
@@ -140,8 +139,8 @@ async function getCurrentGoals(slack, channelId, messageTs) {
 
       if (goalListBlock) {
         return goalListBlock.elements.map(element => {
-          const match = element.text.match(/:(\w+): (.+)/);
-          return match ? { emoji: match[1], text: match[2] } : null;
+          const match = element.text.match(/\d+\.\s(.+)/);
+          return match ? { text: match[1] } : null;
         }).filter(Boolean);
       }
     }
