@@ -6,9 +6,8 @@ const cleanDatabaseId = config.NOTION_DATABASE_ID.trim().replace(/"/g, '');
 
 const notion = new Client({ auth: config.NOTION_INTEGRATION_TOKEN });
 
-async function sendWeeklyDataToNotion(completedTasks, incompleteTasks, achievementRate, feedback) {
+async function sendWeeklyDataToNotion(completedTasks, incompleteTasks, feedback) {
   try {
-    const today = new Date();
     const period = "8/19-8/25";
 
     console.log('Preparing data for Notion API');

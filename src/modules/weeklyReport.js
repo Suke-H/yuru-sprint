@@ -17,10 +17,8 @@ async function generateWeeklyReport(slack, channelId) {
       return;
     }
 
-    // const formattedGoals = formatGoalStatuses(goalStatuses);
     const achievementRate = calculateAchievementRate(goalStatuses);
 
-    // const message = weeklyReportMessage(formattedGoals, achievementRate);
     const message = weeklyReportMessage(goalStatuses, achievementRate);
 
     await slack.chat.postMessage({
@@ -35,13 +33,6 @@ async function generateWeeklyReport(slack, channelId) {
   }
 }
 
-// function formatGoalStatuses(goalStatuses) {
-//   return goalStatuses.map((goal, index) => {
-//     const statusEmoji = goal.isCompleted ? "✅" : "⬜";
-//     return `${index + 1}. :${goal.emoji}: ${goal.text} ${statusEmoji}`;
-//   }).join('\n');
-// }
-
 function calculateAchievementRate(goalStatuses) {
   const completedGoals = goalStatuses.filter(goal => goal.isCompleted);
   return Math.round((completedGoals.length / goalStatuses.length) * 100);
@@ -54,7 +45,7 @@ async function handleUserFeedback(payload, slack, channelId) {
       throw new Error('Feedback is empty');
     }
 
-    const { goals, achievementRate } = JSON.parse(payload.actions[0].value);
+    const { goals } = JSON.parse(payload.actions[0].value);
     
     const completedTasks = goals.filter(goal => goal.isCompleted).map(goal => `${goal.emoji} ${goal.text}`);
     const incompleteTasks = goals.filter(goal => !goal.isCompleted).map(goal => `${goal.emoji} ${goal.text}`);
@@ -62,7 +53,6 @@ async function handleUserFeedback(payload, slack, channelId) {
     await sendWeeklyDataToNotion(
       completedTasks.join('\n') || 'なし',
       incompleteTasks.join('\n') || 'なし',
-      achievementRate,
       feedback
     );
 
