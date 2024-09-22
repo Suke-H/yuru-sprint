@@ -34,9 +34,12 @@ jobs:
           project_id: ${{ secrets.PROJECT_ID }}
           install_components: 'beta'
 
+      - name: Create .env file
+        run: echo "${{ secrets.ENV_FILE }}" > .env
+
       - name: Build Docker image
         run: |
-          docker build --no-cache -t gcr.io/${{ secrets.PROJECT_ID }}/${{ env.SERVICE_NAME }}:$GITHUB_SHA .
+          docker build --no-cache --build-arg NODE_ENV=production -t gcr.io/${{ secrets.PROJECT_ID }}/${{ env.SERVICE_NAME }}:$GITHUB_SHA .
 
       - name: Push Docker image
         run: |
@@ -45,17 +48,10 @@ jobs:
 
       - name: Deploy to Cloud Run
         run: |
+          export $(grep -v '^#' .env | xargs) && \
           gcloud run deploy ${{ env.SERVICE_NAME }} \
             --image gcr.io/${{ secrets.PROJECT_ID }}/${{ env.SERVICE_NAME }}:$GITHUB_SHA \
             --platform managed \
             --region ${{ env.REGION }} \
             --allow-unauthenticated \
-            --set-env-vars "\
-              NODE_ENV=production,\
-              SLACK_WEBHOOK_URL=${{ secrets.PRODUCTION_SLACK_WEBHOOK_URL }},\
-              SLACK_BOT_TOKEN=${{ secrets.PRODUCTION_SLACK_BOT_TOKEN }},\
-              SLACK_CHANNEL_ID=${{ secrets.PRODUCTION_SLACK_CHANNEL_ID }},\
-              SLACK_USER_ID=${{ secrets.PRODUCTION_SLACK_USER_ID }},\
-              NOTION_INTEGRATION_TOKEN=${{ secrets.PRODUCTION_NOTION_INTEGRATION_TOKEN }},\
-              NOTION_DATABASE_ID=${{ secrets.PRODUCTION_NOTION_DATABASE_ID }}\
-            "
+            --set-env-vars "NODE_ENV=$NODE_ENV, SLACK_WEBHOOK_URL=$SLACK_WEBHOOK_URL, SLACK_BOT_TOKEN=$SLACK_BOT_TOKEN, SLACK_CHANNEL_ID=$SLACK_CHANNEL_ID, SLACK_USER_ID=$SLACK_USER_ID, NOTION_INTEGRATION_TOKEN=$NOTION_INTEGRATION_TOKEN, NOTION_DATABASE_ID=$NOTION_DATABASE_ID"
