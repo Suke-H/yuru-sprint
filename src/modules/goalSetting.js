@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const { emojiMapping } = require("../utils/emojiMapping");
-const { goalSettingMessage, updateGoalSettingMessage } = require("../messages/goalSettingMessage");
+const { createGoalSettingMessage, updateGoalSettingMessage } = require("../messages/goalSettingMessage");
 const { USERS } = require("../config");
 
 const MAX_GOALS = 15;
@@ -10,11 +10,11 @@ function getRandomEmojis(count) {
   return _.shuffle(allEmojis).slice(0, count);
 }
 
-async function sendMessageToUser(slack, channelId) { 
+async function sendMessageToUser(slack, channelId, userId) { 
   try {
     const result = await slack.chat.postMessage({
       channel: channelId,
-      ...goalSettingMessage,
+      ...createGoalSettingMessage(userId),
     });
     console.log(`Message sent successfully to channel: ${channelId}`);
     return result.ts;
@@ -25,7 +25,7 @@ async function sendMessageToUser(slack, channelId) {
 
 async function initiateGoalSetting(slack) {
   for (const user of USERS) {
-    await sendMessageToUser(slack, user.CHANNEL_ID);
+    await sendMessageToUser(slack, user.CHANNEL_ID, user.USER_ID);
   }
 }
 
