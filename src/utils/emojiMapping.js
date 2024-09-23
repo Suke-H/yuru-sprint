@@ -61,7 +61,6 @@ const emojiMapping = {
   wastebasket: { reaction: 'wastebasket', notion: '🗑️' },
   passport_control: { reaction: 'passport_control', notion: '🛂' },
   adhesive_bandage: { reaction: 'adhesive_bandage', notion: '🩹' },
-  monocle_face: { reaction: 'monocle_face', notion: '🧐' },
   coffin: { reaction: 'coffin', notion: '⚰️' },
   test_tube: { reaction: 'test_tube', notion: '🧪' },
   necktie: { reaction: 'necktie', notion: '👔' },
