@@ -67,4 +67,5 @@ jobs:
             --platform managed \
             --region ${{ env.REGION }} \
             --allow-unauthenticated \
-            --env-vars-file env.yaml
+            --env-vars-file env.yaml \
+            --set-env-vars PORT=8080
