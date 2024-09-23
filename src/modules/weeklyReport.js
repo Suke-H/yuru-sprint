@@ -4,7 +4,7 @@ const { sendWeeklyDataToNotion } = require("./sendToNotionDB");
 const { emojiMapping } = require("../utils/emojiMapping");
 const { USERS } = require("../config");
 
-async function sendMessageToUser(slack, channelId) {
+async function sendMessageToUser(slack, channelId, userId) {
   try {
     console.log("Generating weekly report...");
 
@@ -22,7 +22,7 @@ async function sendMessageToUser(slack, channelId) {
 
     const achievementRate = calculateAchievementRate(goalStatuses);
 
-    const message = weeklyReportMessage(goalStatuses, achievementRate, period);
+    const message = weeklyReportMessage(userId, goalStatuses, achievementRate, period);
 
     await slack.chat.postMessage({
       channel: channelId,
@@ -38,7 +38,7 @@ async function sendMessageToUser(slack, channelId) {
 
 async function generateWeeklyReport(slack) {
   for (const user of USERS) {
-    await sendMessageToUser(slack, user.CHANNEL_ID);
+    await sendMessageToUser(slack, user.CHANNEL_ID, user.USER_ID);
   }
 }
 
@@ -47,7 +47,7 @@ function calculateAchievementRate(goalStatuses) {
   return Math.round((completedGoals.length / goalStatuses.length) * 100);
 }
 
-async function handleUserFeedback(payload, slack, channelId) {
+async function handleUserFeedback(payload, slack) {
   try {
     const feedback =
       payload.state.values.reflection_input.reflection_input.value;
@@ -75,13 +75,13 @@ async function handleUserFeedback(payload, slack, channelId) {
     console.log("Data sent to Notion successfully");
 
     await slack.chat.postMessage({
-      channel: channelId,
+      channel: payload.channel.id,
       text: "Notionへ送信しました。1週間お疲れ様！",
     });
   } catch (error) {
     console.error("Error handling user feedback:", error);
     await slack.chat.postMessage({
-      channel: channelId,
+      channel: payload.channel.id,
       text: `エラーが発生しました: ${error.message}`,
     });
     throw error;

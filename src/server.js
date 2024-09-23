@@ -92,7 +92,7 @@ function createApp(testMode = false) {
             throw new Error('User feedback is empty');
           }
           
-          await weeklyReport.handleUserFeedback(payload, slack, payload.channel.id);
+          await weeklyReport.handleUserFeedback(payload, slack);
         }
       } catch (error) {
         console.error('Error handling action:', error);
@@ -138,13 +138,13 @@ if (process.env.NODE_ENV === 'development') {
     }
   );
   
-  // const scheduleWeeklyReport = scheduler.scheduleJob(
-  //   config.WEEKLY_REPORT_CRON,
-  //   () => {
-  //     console.log('Generating weekly report...');
-  //     weeklyReport.generateWeeklyReport(slack);
-  //   }
-  // );
+  const scheduleWeeklyReport = scheduler.scheduleJob(
+    config.WEEKLY_REPORT_CRON,
+    () => {
+      console.log('Generating weekly report...');
+      weeklyReport.generateWeeklyReport(slack);
+    }
+  );
 }
 
 return { app, scheduler };
