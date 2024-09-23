@@ -23,13 +23,12 @@ function createApp(testMode = false) {
     } else if (req.body.event && req.body.event.type === 'app_mention') {
       console.log('App was mentioned!');
   
+      // メンションされたチャンネルに対応するUSERを見つける
       const mentionedChannelId = req.body.event.channel;
-      
-      // メンションされたチャンネルに対応するユーザーを見つける
       const mentionedUser = config.USERS.find(user => user.CHANNEL_ID === mentionedChannelId);
   
+      // 見つかったUSERのWebhook URLにメッセージを送信
       if (mentionedUser) {
-        // 見つかったユーザーのWebhook URLにメッセージを送信
         axios.post(mentionedUser.WEBHOOK_URL, { text: "Gotta get the bread and milk!" }, {
           headers: {
             'Content-Type': 'application/json'

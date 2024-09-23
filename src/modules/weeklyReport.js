@@ -58,6 +58,9 @@ async function handleUserFeedback(payload, slack) {
     const { goals, period } = JSON.parse(payload.actions[0].value);
     console.log("Parsed data:", { goals, period });
 
+    // チャンネルに対応するUSERを取得
+    const mentionedUser = USERS.find(user => user.CHANNEL_ID === payload.channel.id);
+
     const completedTasks = goals
       .filter((goal) => goal.isCompleted)
       .map((goal) => `${emojiMapping[goal.emoji].notion} ${goal.text}`);
@@ -66,10 +69,11 @@ async function handleUserFeedback(payload, slack) {
       .map((goal) => `${emojiMapping[goal.emoji].notion} ${goal.text}`);
 
     await sendWeeklyDataToNotion(
+      period,
+      mentionedUser.USER_NAME,
       completedTasks.join("\n") || "なし",
       incompleteTasks.join("\n") || "なし",
-      feedback,
-      period
+      feedback
     );
 
     console.log("Data sent to Notion successfully");
