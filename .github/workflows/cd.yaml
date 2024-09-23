@@ -46,6 +46,18 @@ jobs:
           gcloud auth configure-docker
           docker push gcr.io/${{ secrets.PROJECT_ID }}/${{ env.SERVICE_NAME }}:$GITHUB_SHA
 
+      - name: Debug environment variables
+        run: |
+          source .env
+          echo "SLACK_BOT_TOKEN=${SLACK_BOT_TOKEN}"
+          echo "NODE_ENV=${NODE_ENV}"
+          echo "NOTION_INTEGRATION_TOKEN=${NOTION_INTEGRATION_TOKEN}"
+          echo "NOTION_DATABASE_ID=${NOTION_DATABASE_ID}"
+          echo "USER_IDS=${USER_IDS}"
+          echo "USER_NAMES=${USER_NAMES}"
+          echo "CHANNEL_IDS=${CHANNEL_IDS}"
+          echo "WEBHOOK_URLS=${WEBHOOK_URLS}"
+
       - name: Deploy to Cloud Run
         run: |
           source .env
@@ -54,11 +66,6 @@ jobs:
             --platform managed \
             --region ${{ env.REGION }} \
             --allow-unauthenticated \
-            --set-env-vars "SLACK_BOT_TOKEN='${SLACK_BOT_TOKEN}'" \
-            --set-env-vars "NODE_ENV='${NODE_ENV}'" \
-            --set-env-vars "NOTION_INTEGRATION_TOKEN='${NOTION_INTEGRATION_TOKEN}'" \
-            --set-env-vars "NOTION_DATABASE_ID='${NOTION_DATABASE_ID}'" \
-            --set-env-vars "USER_IDS='${USER_IDS}'" \
-            --set-env-vars "USER_NAMES='${USER_NAMES}'" \
-            --set-env-vars "CHANNEL_IDS='${CHANNEL_IDS}'" \
-            --set-env-vars "WEBHOOK_URLS='${WEBHOOK_URLS}'"
+            --set-env-vars NODE_ENV="${NODE_ENV}" \
+            --set-env-vars USER_IDS="${USER_IDS}" \
+            --set-env-vars CHANNEL_IDS="${CHANNEL_IDS}" \
