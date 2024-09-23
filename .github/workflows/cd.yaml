@@ -34,9 +34,6 @@ jobs:
           project_id: ${{ secrets.PROJECT_ID }}
           install_components: 'beta'
 
-      - name: Create .env file
-        run: echo "${{ secrets.ENV_FILE }}" > .env
-
       - name: Build Docker image
         run: |
           docker build --no-cache --build-arg NODE_ENV=production -t gcr.io/${{ secrets.PROJECT_ID }}/${{ env.SERVICE_NAME }}:$GITHUB_SHA .
@@ -46,19 +43,28 @@ jobs:
           gcloud auth configure-docker
           docker push gcr.io/${{ secrets.PROJECT_ID }}/${{ env.SERVICE_NAME }}:$GITHUB_SHA
 
-      - name: Deploy to Cloud Run
+      - name: Create .env file
+        run: echo "${{ secrets.ENV_FILE }}" > .env
+
+      - name: Create env.yaml for Cloud Run
         run: |
           source .env
+          cat << EOF > env.yaml
+          SLACK_BOT_TOKEN: '${SLACK_BOT_TOKEN}'
+          NODE_ENV: '${NODE_ENV}'
+          NOTION_INTEGRATION_TOKEN: '${NOTION_INTEGRATION_TOKEN}'
+          NOTION_DATABASE_ID: '${NOTION_DATABASE_ID}'
+          USER_IDS: '${USER_IDS}'
+          USER_NAMES: '${USER_NAMES}'
+          CHANNEL_IDS: '${CHANNEL_IDS}'
+          WEBHOOK_URLS: '${WEBHOOK_URLS}'
+          EOF
+
+      - name: Deploy to Cloud Run
+        run: |
           gcloud run deploy ${{ env.SERVICE_NAME }} \
             --image gcr.io/${{ secrets.PROJECT_ID }}/${{ env.SERVICE_NAME }}:$GITHUB_SHA \
             --platform managed \
             --region ${{ env.REGION }} \
             --allow-unauthenticated \
-            --set-env-vars "SLACK_BOT_TOKEN=${SLACK_BOT_TOKEN}" \
-            --set-env-vars "NODE_ENV=${NODE_ENV}" \
-            --set-env-vars "NOTION_INTEGRATION_TOKEN=${NOTION_INTEGRATION_TOKEN}" \
-            --set-env-vars "NOTION_DATABASE_ID=${NOTION_DATABASE_ID}" \
-            --set-env-vars "USER_IDS=${USER_IDS}" \
-            --set-env-vars "USER_NAMES=${USER_NAMES}" \
-            --set-env-vars "CHANNEL_IDS=${CHANNEL_IDS}" \
-            --set-env-vars "WEBHOOK_URLS=${WEBHOOK_URLS}" 
+            --env-vars-file env.yaml
