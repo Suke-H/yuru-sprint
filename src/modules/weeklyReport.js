@@ -2,8 +2,9 @@ const { detectStatuses } = require("./statusDetector");
 const { weeklyReportMessage } = require("../messages/weeklyReportMessage");
 const { sendWeeklyDataToNotion } = require("./sendToNotionDB");
 const { emojiMapping } = require("../utils/emojiMapping");
+const { USERS } = require("../config");
 
-async function generateWeeklyReport(slack, channelId) {
+async function sendMessageToUser(slack, channelId) {
   try {
     console.log("Generating weekly report...");
 
@@ -32,6 +33,12 @@ async function generateWeeklyReport(slack, channelId) {
   } catch (error) {
     console.error("Error generating weekly report:", error);
     throw error;
+  }
+}
+
+async function generateWeeklyReport(slack) {
+  for (const user of USERS) {
+    await sendMessageToUser(slack, user.CHANNEL_ID);
   }
 }
 

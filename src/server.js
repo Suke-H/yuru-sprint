@@ -22,19 +22,28 @@ function createApp(testMode = false) {
       res.status(200).send(req.body.challenge);
     } else if (req.body.event && req.body.event.type === 'app_mention') {
       console.log('App was mentioned!');
-
-      const webhookUrl = process.env.SLACK_WEBHOOK_URL; 
-      axios.post(webhookUrl, { text: "Gotta get the bread and milk!" }, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-      .then(response => {
-        console.log('Message posted successfully:', response.data);
-      })
-      .catch(error => {
-        console.error('Error posting message:', error);
-      });
+  
+      const mentionedChannelId = req.body.event.channel;
+      
+      // メンションされたチャンネルに対応するユーザーを見つける
+      const mentionedUser = config.USERS.find(user => user.CHANNEL_ID === mentionedChannelId);
+  
+      if (mentionedUser) {
+        // 見つかったユーザーのWebhook URLにメッセージを送信
+        axios.post(mentionedUser.WEBHOOK_URL, { text: "Gotta get the bread and milk!" }, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(response => {
+          console.log(`Message posted successfully to ${mentionedUser.USER_NAME}:`, response.data);
+        })
+        .catch(error => {
+          console.error(`Error posting message to ${mentionedUser.USER_NAME}:`, error);
+        });
+      } else {
+        console.log(`No user found for channel ID: ${mentionedChannelId}`);
+      }
   
       res.status(200).send('Event received');
     } else {
@@ -98,7 +107,7 @@ function createApp(testMode = false) {
 app.post('/trigger/goal-setting', async (req, res) => {
   try {
     console.log('Initiating goal setting...');
-    await goalSetting.initiateGoalSetting(slack, config.SLACK_CHANNEL_ID);
+    await goalSetting.initiateGoalSetting(slack);
     res.status(200).send('Goal setting initiated');
   } catch (error) {
     console.error('Error initiating goal setting:', error);
@@ -109,7 +118,7 @@ app.post('/trigger/goal-setting', async (req, res) => {
 app.post('/trigger/weekly-report', async (req, res) => {
   try {
     console.log('Generating weekly report...');
-    await weeklyReport.generateWeeklyReport(slack, config.SLACK_CHANNEL_ID);
+    await weeklyReport.generateWeeklyReport(slack);
     res.status(200).send('Weekly report generated');
   } catch (error) {
     console.error('Error generating weekly report:', error);
@@ -117,26 +126,26 @@ app.post('/trigger/weekly-report', async (req, res) => {
   }
 });
 
-// 開発環境の場合、ローカルでスケジューリングを設定
-if (process.env.NODE_ENV === 'development') {
-  console.log('Setting up local scheduling...');
+// // 開発環境の場合、ローカルでスケジューリングを設定
+// if (process.env.NODE_ENV === 'development') {
+//   console.log('Setting up local scheduling...');
   
-  const scheduleGoalSetting = scheduler.scheduleJob(
-    config.GOAL_SETTING_CRON,
-    () => {
-      console.log('Initiating goal setting...');
-      goalSetting.initiateGoalSetting(slack, config.SLACK_CHANNEL_ID);
-    }
-  );
+//   const scheduleGoalSetting = scheduler.scheduleJob(
+//     config.GOAL_SETTING_CRON,
+//     () => {
+//       console.log('Initiating goal setting...');
+//       goalSetting.initiateGoalSetting(slack, config.SLACK_CHANNEL_ID);
+//     }
+//   );
   
-  const scheduleWeeklyReport = scheduler.scheduleJob(
-    config.WEEKLY_REPORT_CRON,
-    () => {
-      console.log('Generating weekly report...');
-      weeklyReport.generateWeeklyReport(slack, config.SLACK_CHANNEL_ID);
-    }
-  );
-}
+//   const scheduleWeeklyReport = scheduler.scheduleJob(
+//     config.WEEKLY_REPORT_CRON,
+//     () => {
+//       console.log('Generating weekly report...');
+//       weeklyReport.generateWeeklyReport(slack, config.SLACK_CHANNEL_ID);
+//     }
+//   );
+// }
 
 return { app, scheduler };
 }
