@@ -54,11 +54,11 @@ jobs:
             --platform managed \
             --region ${{ env.REGION }} \
             --allow-unauthenticated \
-            --set-env-vars "SLACK_BOT_TOKEN=${SLACK_BOT_TOKEN}" \
-            --set-env-vars "NODE_ENV=${NODE_ENV}" \
-            --set-env-vars "NOTION_INTEGRATION_TOKEN=${NOTION_INTEGRATION_TOKEN}" \
-            --set-env-vars "NOTION_DATABASE_ID=${NOTION_DATABASE_ID}" \
-            --set-env-vars "USER_IDS=${USER_IDS}" \
-            --set-env-vars "USER_NAMES=${USER_NAMES}" \
-            --set-env-vars "CHANNEL_IDS=${CHANNEL_IDS}" \
-            --set-env-vars "WEBHOOK_URLS=${WEBHOOK_URLS}"
+            --set-env-vars "SLACK_BOT_TOKEN='${SLACK_BOT_TOKEN}'" \
+            --set-env-vars "NODE_ENV='${NODE_ENV}'" \
+            --set-env-vars "NOTION_INTEGRATION_TOKEN='${NOTION_INTEGRATION_TOKEN}'" \
+            --set-env-vars "NOTION_DATABASE_ID='${NOTION_DATABASE_ID}'" \
+            --set-env-vars "USER_IDS='${USER_IDS}'" \
+            --set-env-vars "USER_NAMES='${USER_NAMES}'" \
+            --set-env-vars "CHANNEL_IDS='${CHANNEL_IDS}'" \
+            --set-env-vars "WEBHOOK_URLS='${WEBHOOK_URLS}'"
