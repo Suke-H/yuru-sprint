@@ -29,8 +29,8 @@ async function initiateGoalSetting(slack) {
   }
 }
 
-async function handleGoalSubmission(payload, slack, channelId) {
-  const currentGoals = await getCurrentGoals(slack, channelId, payload.message.ts);
+async function handleGoalSubmission(payload, slack) {
+  const currentGoals = await getCurrentGoals(slack, payload.channel.id, payload.message.ts);
 
   if (currentGoals.length >= MAX_GOALS) {
     try {
@@ -51,7 +51,7 @@ async function handleGoalSubmission(payload, slack, channelId) {
 
   try {
     const result = await slack.chat.update({
-      channel: channelId,
+      channel: payload.channel.id,
       ts: payload.message.ts,
       ...updateGoalSettingMessage(currentGoals),
     });
@@ -62,14 +62,14 @@ async function handleGoalSubmission(payload, slack, channelId) {
   }
 }
 
-async function deleteGoal(payload, slack, channelId, index) {
-  const currentGoals = await getCurrentGoals(slack, channelId, payload.message.ts);
+async function deleteGoal(payload, slack, index) {
+  const currentGoals = await getCurrentGoals(slack, payload.channel.id, payload.message.ts);
 
   currentGoals.splice(index, 1);
 
   try {
     const result = await slack.chat.update({
-      channel: channelId,
+      channel: payload.channel.id,
       ts: payload.message.ts,
       ...updateGoalSettingMessage(currentGoals),
     });
@@ -79,8 +79,8 @@ async function deleteGoal(payload, slack, channelId, index) {
   }
 }
 
-async function finalizeGoalSetting(payload, slack, channelId) {
-  const currentGoals = await getCurrentGoals(slack, channelId, payload.message.ts);
+async function finalizeGoalSetting(payload, slack) {
+  const currentGoals = await getCurrentGoals(slack, payload.channel.id, payload.message.ts);
   const randomEmojis = getRandomEmojis(currentGoals.length);
   const goalsWithRandomEmoji = currentGoals.map((goal, index) => ({
     text: goal.text,
@@ -91,16 +91,16 @@ async function finalizeGoalSetting(payload, slack, channelId) {
 
   try {
     const result = await slack.chat.postMessage({
-      channel: channelId,
+      channel: payload.channel.id,
       text: `今週の目標です：\n${goalListText}`,
     });
 
     for (const goal of goalsWithRandomEmoji) {
-      await addReactionToMessage(slack, channelId, result.ts, goal.emoji);
+      await addReactionToMessage(slack, payload.channel.id, result.ts, goal.emoji);
     }
 
     await slack.chat.delete({
-      channel: channelId,
+      channel: payload.channel.id,
       ts: payload.message.ts,
     });
     console.log("Final goal list sent successfully with reactions");

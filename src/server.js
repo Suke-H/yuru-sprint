@@ -73,16 +73,16 @@ function createApp(testMode = false) {
       try {
         // 週初めに送信した目標設定メッセージにて、目標追加ボタン -> 目標リストに追加して更新
         if (action.action_id === 'add_goal') {
-          await goalSetting.handleGoalSubmission(payload, slack, config.SLACK_CHANNEL_ID);
+          await goalSetting.handleGoalSubmission(payload, slack);
 
         // 目標リストを確定させる
         } else if (action.action_id === 'finalize_goals') {
-          await goalSetting.finalizeGoalSetting(payload, slack, config.SLACK_CHANNEL_ID);
+          await goalSetting.finalizeGoalSetting(payload, slack);
 
         // 目標リストから1つ目標削除
         } else if (action.action_id.startsWith('delete_goal_')) {
           const index = parseInt(action.action_id.split('_')[2]);
-          await goalSetting.deleteGoal(payload, slack, payload.channel.id, index);
+          await goalSetting.deleteGoal(payload, slack, index);
 
         // 週終わりに送信した週間レポートのフィードバックを受け取る -> Notionに送信
         } else if (action.action_id === 'submit_reflection') {
@@ -126,26 +126,26 @@ app.post('/trigger/weekly-report', async (req, res) => {
   }
 });
 
-// // 開発環境の場合、ローカルでスケジューリングを設定
-// if (process.env.NODE_ENV === 'development') {
-//   console.log('Setting up local scheduling...');
+// 開発環境の場合、ローカルでスケジューリングを設定
+if (process.env.NODE_ENV === 'development') {
+  console.log('Setting up local scheduling...');
   
-//   const scheduleGoalSetting = scheduler.scheduleJob(
-//     config.GOAL_SETTING_CRON,
-//     () => {
-//       console.log('Initiating goal setting...');
-//       goalSetting.initiateGoalSetting(slack, config.SLACK_CHANNEL_ID);
-//     }
-//   );
+  const scheduleGoalSetting = scheduler.scheduleJob(
+    config.GOAL_SETTING_CRON,
+    () => {
+      console.log('Initiating goal setting...');
+      goalSetting.initiateGoalSetting(slack);
+    }
+  );
   
-//   const scheduleWeeklyReport = scheduler.scheduleJob(
-//     config.WEEKLY_REPORT_CRON,
-//     () => {
-//       console.log('Generating weekly report...');
-//       weeklyReport.generateWeeklyReport(slack, config.SLACK_CHANNEL_ID);
-//     }
-//   );
-// }
+  // const scheduleWeeklyReport = scheduler.scheduleJob(
+  //   config.WEEKLY_REPORT_CRON,
+  //   () => {
+  //     console.log('Generating weekly report...');
+  //     weeklyReport.generateWeeklyReport(slack);
+  //   }
+  // );
+}
 
 return { app, scheduler };
 }
