@@ -49,14 +49,12 @@ jobs:
       - name: Debug environment variables
         run: |
           source .env
-          echo "SLACK_BOT_TOKEN=${SLACK_BOT_TOKEN}"
-          echo "NODE_ENV=${NODE_ENV}"
-          echo "NOTION_INTEGRATION_TOKEN=${NOTION_INTEGRATION_TOKEN}"
-          echo "NOTION_DATABASE_ID=${NOTION_DATABASE_ID}"
-          echo "USER_IDS=${USER_IDS}"
-          echo "USER_NAMES=${USER_NAMES}"
-          echo "CHANNEL_IDS=${CHANNEL_IDS}"
-          echo "WEBHOOK_URLS=${WEBHOOK_URLS}"
+          echo "NODE_ENV: ${NODE_ENV}"
+          echo "USER_IDS: ${USER_IDS//[^,]/*}"
+          echo "USER_NAMES: ${USER_NAMES//[^,]/*}"
+          echo "CHANNEL_IDS: ${CHANNEL_IDS//[^,]/*}"
+          echo "WEBHOOK_URLS length: ${#WEBHOOK_URLS}"
+          echo "WEBHOOK_URLS prefix: ${WEBHOOK_URLS:0:10}..."
 
       - name: Deploy to Cloud Run
         run: |
