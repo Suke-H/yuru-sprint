@@ -1,6 +1,6 @@
 const { emojiMapping } = require("../utils/emojiMapping");
 
-function weeklyReportMessage(goals, achievementRate, period) {
+function weeklyReportMessage(userId, goals, achievementRate, period) {
   const formattedGoals = goals
     .map(
       (goal, index) =>
@@ -16,7 +16,7 @@ function weeklyReportMessage(goals, achievementRate, period) {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `*今週の目標の振り返り (${period})*`,
+          text: `<@${userId}>\n*今週の目標の振り返り (${period})*`,
         },
       },
       {

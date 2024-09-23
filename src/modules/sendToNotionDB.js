@@ -6,7 +6,7 @@ const cleanDatabaseId = config.NOTION_DATABASE_ID.trim().replace(/"/g, '');
 
 const notion = new Client({ auth: config.NOTION_INTEGRATION_TOKEN });
 
-async function sendWeeklyDataToNotion(completedTasks, incompleteTasks, feedback, period) {
+async function sendWeeklyDataToNotion(period, userName, completedTasks, incompleteTasks, feedback) {
   try {
 
     console.log('Preparing data for Notion API');
@@ -15,6 +15,9 @@ async function sendWeeklyDataToNotion(completedTasks, incompleteTasks, feedback,
       properties: {
         '期間': {
           title: [{ text: { content: period } }]
+        },
+        'ゆるゆる走者': {
+          rich_text: [{ text: { content: userName } }]
         },
         '完了タスク': {
           rich_text: [{ text: { content: completedTasks } }]

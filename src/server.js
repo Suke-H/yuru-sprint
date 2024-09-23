@@ -22,19 +22,27 @@ function createApp(testMode = false) {
       res.status(200).send(req.body.challenge);
     } else if (req.body.event && req.body.event.type === 'app_mention') {
       console.log('App was mentioned!');
-
-      const webhookUrl = process.env.SLACK_WEBHOOK_URL; 
-      axios.post(webhookUrl, { text: "Gotta get the bread and milk!" }, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-      .then(response => {
-        console.log('Message posted successfully:', response.data);
-      })
-      .catch(error => {
-        console.error('Error posting message:', error);
-      });
+  
+      // メンションされたチャンネルに対応するUSERを見つける
+      const mentionedChannelId = req.body.event.channel;
+      const mentionedUser = config.USERS.find(user => user.CHANNEL_ID === mentionedChannelId);
+  
+      // 見つかったUSERのWebhook URLにメッセージを送信
+      if (mentionedUser) {
+        axios.post(mentionedUser.WEBHOOK_URL, { text: "Gotta get the bread and milk!" }, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(response => {
+          console.log(`Message posted successfully to ${mentionedUser.USER_NAME}:`, response.data);
+        })
+        .catch(error => {
+          console.error(`Error posting message to ${mentionedUser.USER_NAME}:`, error);
+        });
+      } else {
+        console.log(`No user found for channel ID: ${mentionedChannelId}`);
+      }
   
       res.status(200).send('Event received');
     } else {
@@ -64,16 +72,16 @@ function createApp(testMode = false) {
       try {
         // 週初めに送信した目標設定メッセージにて、目標追加ボタン -> 目標リストに追加して更新
         if (action.action_id === 'add_goal') {
-          await goalSetting.handleGoalSubmission(payload, slack, config.SLACK_CHANNEL_ID);
+          await goalSetting.handleGoalSubmission(payload, slack);
 
         // 目標リストを確定させる
         } else if (action.action_id === 'finalize_goals') {
-          await goalSetting.finalizeGoalSetting(payload, slack, config.SLACK_CHANNEL_ID);
+          await goalSetting.finalizeGoalSetting(payload, slack);
 
         // 目標リストから1つ目標削除
         } else if (action.action_id.startsWith('delete_goal_')) {
           const index = parseInt(action.action_id.split('_')[2]);
-          await goalSetting.deleteGoal(payload, slack, payload.channel.id, index);
+          await goalSetting.deleteGoal(payload, slack, index);
 
         // 週終わりに送信した週間レポートのフィードバックを受け取る -> Notionに送信
         } else if (action.action_id === 'submit_reflection') {
@@ -83,7 +91,7 @@ function createApp(testMode = false) {
             throw new Error('User feedback is empty');
           }
           
-          await weeklyReport.handleUserFeedback(payload, slack, payload.channel.id);
+          await weeklyReport.handleUserFeedback(payload, slack);
         }
       } catch (error) {
         console.error('Error handling action:', error);
@@ -98,7 +106,7 @@ function createApp(testMode = false) {
 app.post('/trigger/goal-setting', async (req, res) => {
   try {
     console.log('Initiating goal setting...');
-    await goalSetting.initiateGoalSetting(slack, config.SLACK_CHANNEL_ID);
+    await goalSetting.initiateGoalSetting(slack);
     res.status(200).send('Goal setting initiated');
   } catch (error) {
     console.error('Error initiating goal setting:', error);
@@ -109,7 +117,7 @@ app.post('/trigger/goal-setting', async (req, res) => {
 app.post('/trigger/weekly-report', async (req, res) => {
   try {
     console.log('Generating weekly report...');
-    await weeklyReport.generateWeeklyReport(slack, config.SLACK_CHANNEL_ID);
+    await weeklyReport.generateWeeklyReport(slack);
     res.status(200).send('Weekly report generated');
   } catch (error) {
     console.error('Error generating weekly report:', error);
@@ -125,7 +133,7 @@ if (process.env.NODE_ENV === 'development') {
     config.GOAL_SETTING_CRON,
     () => {
       console.log('Initiating goal setting...');
-      goalSetting.initiateGoalSetting(slack, config.SLACK_CHANNEL_ID);
+      goalSetting.initiateGoalSetting(slack);
     }
   );
   
@@ -133,7 +141,7 @@ if (process.env.NODE_ENV === 'development') {
     config.WEEKLY_REPORT_CRON,
     () => {
       console.log('Generating weekly report...');
-      weeklyReport.generateWeeklyReport(slack, config.SLACK_CHANNEL_ID);
+      weeklyReport.generateWeeklyReport(slack);
     }
   );
 }
