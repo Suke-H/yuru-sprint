@@ -1,6 +1,11 @@
 # ゆるスプリント
 
+<img src="https://github.com/user-attachments/assets/82be199c-4e7e-4e82-88e9-8cd4dac2e499" width="500"/>
+
+
 Slackにてゆる～く1週間の目標を立てられるアプリです。
+
+# 概要
 
 ![image](https://github.com/user-attachments/assets/b54f7c74-caf1-4e9a-a789-f92d02151419)
 
