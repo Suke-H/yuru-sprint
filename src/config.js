@@ -2,10 +2,10 @@ require('dotenv').config();
 const env = process.env.NODE_ENV || 'production';
 
 // カンマ区切りの環境変数を配列として取得
-const USER_IDS = process.env.USER_IDS ? process.env.USER_IDS.split(',') : [];
-const USER_NAMES = process.env.USER_NAMES ? process.env.USER_NAMES.split(',') : [];
-const CHANNEL_IDS = process.env.CHANNEL_IDS ? process.env.CHANNEL_IDS.split(',') : [];
-const WEBHOOK_URLS = process.env.WEBHOOK_URLS ? process.env.WEBHOOK_URLS.split(',') : [];
+const USER_IDS = process.env.USER_IDS ? process.env.USER_IDS.split('|') : [];
+const USER_NAMES = process.env.USER_NAMES ? process.env.USER_NAMES.split('|') : [];
+const CHANNEL_IDS = process.env.CHANNEL_IDS ? process.env.CHANNEL_IDS.split('|') : [];
+const WEBHOOK_URLS = process.env.WEBHOOK_URLS ? process.env.WEBHOOK_URLS.split('|') : [];
 
 // 要素数の確認: 要素数が一致しない場合はエラーをスロー
 if (USER_IDS.length !== USER_NAMES.length || USER_IDS.length !== CHANNEL_IDS.length || USER_IDS.length !== WEBHOOK_URLS.length) {
