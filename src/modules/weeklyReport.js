@@ -56,15 +56,21 @@ async function handleUserFeedback(payload, slack) {
     }
 
     const { goals, period } = JSON.parse(payload.actions[0].value);
-    console.log("Parsed data:", { goals, period });
+    
+    // static_selectの状態を取得して目標の達成状態を更新
+    const updatedGoals = goals.map((goal, index) => ({
+      ...goal,
+      isCompleted: payload.state.values[`goal_status_${index}`][`goal_status_change_${index}`].selected_option.value === "completed",
+      finalStatus: payload.state.values[`goal_status_${index}`][`goal_status_change_${index}`].selected_option.value === "completed" ? "達成" : "未達成"
+    }));
 
     // チャンネルに対応するUSERを取得
     const mentionedUser = USERS.find(user => user.CHANNEL_ID === payload.channel.id);
 
-    const completedTasks = goals
+    const completedTasks = updatedGoals
       .filter((goal) => goal.isCompleted)
       .map((goal) => `${emojiMapping[goal.emoji].notion} ${goal.text}`);
-    const incompleteTasks = goals
+    const incompleteTasks = updatedGoals
       .filter((goal) => !goal.isCompleted)
       .map((goal) => `${emojiMapping[goal.emoji].notion} ${goal.text}`);
 
@@ -78,9 +84,13 @@ async function handleUserFeedback(payload, slack) {
 
     console.log("Data sent to Notion successfully");
 
+    const updatedAchievementRate = Math.round(
+      (completedTasks.length / updatedGoals.length) * 100
+    );
+
     await slack.chat.postMessage({
       channel: payload.channel.id,
-      text: "Notionへ送信しました。1週間お疲れ様！",
+      text: `最終達成率: ${updatedAchievementRate}%\nNotionへ送信しました。1週間お疲れ様！`,
     });
   } catch (error) {
     console.error("Error handling user feedback:", error);
