@@ -50,7 +50,6 @@ const emojiMapping = {
   clown_face: { reaction: 'clown_face', notion: '🤡' },
   egg: { reaction: 'egg', notion: '🥚' },
   see_no_evil: { reaction: 'see_no_evil', notion: '🙈' },
-  camera_flash: { reaction: 'camera_flash', notion: '📸' },
   alembic: { reaction: 'alembic', notion: '⚗️' },
   mag: { reaction: 'mag', notion: '🔍️' },
   label: { reaction: 'label', notion: '🏷️' },

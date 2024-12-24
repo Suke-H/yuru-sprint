@@ -1,15 +1,6 @@
 const { emojiMapping } = require("../utils/emojiMapping");
 
 function weeklyReportMessage(userId, goals, achievementRate, period) {
-  const formattedGoals = goals
-    .map(
-      (goal, index) =>
-        `${index + 1}. ${emojiMapping[goal.emoji].notion} ${goal.text} ${
-          goal.isCompleted ? "✅" : "⬜"
-        }`
-    )
-    .join("\n");
-
   return {
     blocks: [
       {
@@ -19,18 +10,49 @@ function weeklyReportMessage(userId, goals, achievementRate, period) {
           text: `<@${userId}>\n*今週の目標の振り返り (${period})*`,
         },
       },
-      {
+      ...goals.map((goal, index) => ({
         type: "section",
+        block_id: `goal_status_${index}`,
         text: {
           type: "mrkdwn",
-          text: formattedGoals,
+          text: `${index + 1}. ${emojiMapping[goal.emoji].notion} ${goal.text} ${goal.isCompleted ? "✅" : "⬜"}`,
         },
-      },
+        accessory: {
+          type: "static_select",
+          action_id: `goal_status_change_${index}`,
+          initial_option: {
+            text: {
+              type: "plain_text",
+              text: goal.isCompleted ? "達成" : "未達成",
+              emoji: true,
+            },
+            value: goal.isCompleted ? "completed" : "incomplete",
+          },
+          options: [
+            {
+              text: {
+                type: "plain_text",
+                text: "達成",
+                emoji: true,
+              },
+              value: "completed",
+            },
+            {
+              text: {
+                type: "plain_text",
+                text: "未達成",
+                emoji: true,
+              },
+              value: "incomplete",
+            },
+          ],
+        },
+      })),
       {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `全体の達成率: ${achievementRate}%`,
+          text: `達成率: ${achievementRate}%`,
         },
       },
       {
