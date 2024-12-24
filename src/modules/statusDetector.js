@@ -38,7 +38,7 @@ async function getWeeklyGoals(slack, channelId) {
     console.log(`Attempting to retrieve messages from channel: ${channelId}`);
     const result = await slack.conversations.history({
       channel: channelId,
-      limit: 100, // 適切な数に調整してください
+      limit: 1000,
     });
 
     console.log(
