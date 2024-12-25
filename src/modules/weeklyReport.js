@@ -20,9 +20,7 @@ async function sendMessageToUser(slack, channelId, userId) {
       return;
     }
 
-    const achievementRate = calculateAchievementRate(goalStatuses);
-
-    const message = weeklyReportMessage(userId, goalStatuses, achievementRate, period);
+    const message = weeklyReportMessage(userId, goalStatuses, period);
 
     await slack.chat.postMessage({
       channel: channelId,
@@ -40,11 +38,6 @@ async function generateWeeklyReport(slack) {
   for (const user of USERS) {
     await sendMessageToUser(slack, user.CHANNEL_ID, user.USER_ID);
   }
-}
-
-function calculateAchievementRate(goalStatuses) {
-  const completedGoals = goalStatuses.filter((goal) => goal.isCompleted);
-  return Math.round((completedGoals.length / goalStatuses.length) * 100);
 }
 
 async function handleUserFeedback(payload, slack) {
@@ -84,13 +77,9 @@ async function handleUserFeedback(payload, slack) {
 
     console.log("Data sent to Notion successfully");
 
-    const updatedAchievementRate = Math.round(
-      (completedTasks.length / updatedGoals.length) * 100
-    );
-
     await slack.chat.postMessage({
       channel: payload.channel.id,
-      text: `最終達成率: ${updatedAchievementRate}%\nNotionへ送信しました。1週間お疲れ様！`,
+      text: `Notionへ送信しました。1週間お疲れ様！`,
     });
   } catch (error) {
     console.error("Error handling user feedback:", error);
