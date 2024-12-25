@@ -1,6 +1,6 @@
 const { emojiMapping } = require("../utils/emojiMapping");
 
-function weeklyReportMessage(userId, goals, achievementRate, period) {
+function weeklyReportMessage(userId, goals, period) {
   return {
     blocks: [
       {
@@ -48,13 +48,6 @@ function weeklyReportMessage(userId, goals, achievementRate, period) {
           ],
         },
       })),
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: `達成率: ${achievementRate}%`,
-        },
-      },
       {
         type: "input",
         block_id: "reflection_input",
