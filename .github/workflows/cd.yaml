@@ -47,6 +47,8 @@ jobs:
           docker push gcr.io/${{ secrets.PROJECT_ID }}/${{ env.SERVICE_NAME }}:$GITHUB_SHA
 
       - name: Deploy to Cloud Run
+        env:
+          SPREADSHEET_ID: ${{ secrets.SPREADSHEET_ID }}
         run: |
           export $(grep -v '^#' .env | xargs) && \
           gcloud run deploy ${{ env.SERVICE_NAME }} \
