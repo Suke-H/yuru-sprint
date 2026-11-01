@@ -26,8 +26,8 @@ for (let i = 0; i < USER_IDS.length; i++) {
 const config = {
   SLACK_BOT_TOKEN: process.env.SLACK_BOT_TOKEN, 
   SLACK_CHANNEL_ID: process.env.SLACK_CHANNEL_ID,
-  NOTION_INTEGRATION_TOKEN: process.env.NOTION_INTEGRATION_TOKEN,
-  NOTION_DATABASE_ID: process.env.NOTION_DATABASE_ID,
+  SPREADSHEET_ID: process.env.SPREADSHEET_ID,
+  SHEET_NAME: process.env.SHEET_NAME || '週間レポート',
   USERS,
 
   development: {

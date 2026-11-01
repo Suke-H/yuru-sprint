@@ -83,7 +83,7 @@ function createApp(testMode = false) {
           const index = parseInt(action.action_id.split('_')[2]);
           await goalSetting.deleteGoal(payload, slack, index);
 
-        // 週終わりに送信した週間レポートのフィードバックを受け取る -> Notionに送信
+        // 週終わりに送信した週間レポートのフィードバックを受け取る -> スプレッドシートに記録
         } else if (action.action_id === 'submit_reflection') {
           const userFeedback = payload.state.values.reflection_input.reflection_input.value;
           
