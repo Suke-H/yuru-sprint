@@ -47,6 +47,8 @@ jobs:
           docker push gcr.io/${{ secrets.PROJECT_ID }}/${{ env.SERVICE_NAME }}:$GITHUB_SHA
 
       - name: Deploy to Cloud Run
+        env:
+          SPREADSHEET_ID: ${{ secrets.SPREADSHEET_ID }}
         run: |
           export $(grep -v '^#' .env | xargs) && \
           gcloud run deploy ${{ env.SERVICE_NAME }} \
@@ -54,5 +56,5 @@ jobs:
             --platform managed \
             --region ${{ env.REGION }} \
             --allow-unauthenticated \
-            --set-env-vars "NODE_ENV=$NODE_ENV, WEBHOOK_URLS=$WEBHOOK_URLS, SLACK_BOT_TOKEN=$SLACK_BOT_TOKEN, CHANNEL_IDS=$CHANNEL_IDS, USER_IDS=$USER_IDS, USER_NAMES=$USER_NAMES, NOTION_INTEGRATION_TOKEN=$NOTION_INTEGRATION_TOKEN, NOTION_DATABASE_ID=$NOTION_DATABASE_ID"
+            --set-env-vars "NODE_ENV=$NODE_ENV, WEBHOOK_URLS=$WEBHOOK_URLS, SLACK_BOT_TOKEN=$SLACK_BOT_TOKEN, CHANNEL_IDS=$CHANNEL_IDS, USER_IDS=$USER_IDS, USER_NAMES=$USER_NAMES, SPREADSHEET_ID=$SPREADSHEET_ID, SHEET_NAME=$SHEET_NAME"
             

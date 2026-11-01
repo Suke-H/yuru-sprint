@@ -1,6 +1,6 @@
 const { detectStatuses } = require("./statusDetector");
 const { weeklyReportMessage } = require("../messages/weeklyReportMessage");
-const { sendWeeklyDataToNotion } = require("./sendToNotionDB");
+const { sendWeeklyDataToSpreadsheet } = require("./sendToSpreadsheet");
 const { emojiMapping } = require("../utils/emojiMapping");
 const { USERS } = require("../config");
 
@@ -67,7 +67,7 @@ async function handleUserFeedback(payload, slack) {
       .filter((goal) => !goal.isCompleted)
       .map((goal) => `${emojiMapping[goal.emoji].notion} ${goal.text}`);
 
-    await sendWeeklyDataToNotion(
+    await sendWeeklyDataToSpreadsheet(
       period,
       mentionedUser.USER_NAME,
       completedTasks.join("\n") || "なし",
@@ -75,11 +75,11 @@ async function handleUserFeedback(payload, slack) {
       feedback
     );
 
-    console.log("Data sent to Notion successfully");
+    console.log("Data sent to Spreadsheet successfully");
 
     await slack.chat.postMessage({
       channel: payload.channel.id,
-      text: `Notionへ送信しました。1週間お疲れ様！`,
+      text: `スプレッドシートへ記録しました。1週間お疲れ様！`,
     });
   } catch (error) {
     console.error("Error handling user feedback:", error);

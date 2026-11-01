@@ -15,7 +15,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@notionhq/client": "^2.2.15",
+    "@googleapis/sheets": "^14.0.0",
     "@slack/web-api": "^7.3.4",
     "axios": "^1.7.4",
     "dotenv": "^16.4.5",
