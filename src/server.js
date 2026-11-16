@@ -51,8 +51,9 @@ function createApp(testMode = false) {
   });
 
   // Interactive API
-  // - add_goal: 目標追加
-  // - finalize_goals: 目標リスト確定
+  // - open_add_goal: 目標追加のポップアップを開く
+  // - delete_goal_*: 目標を削除
+  // - add_goal_modal: ポップアップから目標を追加
   // - submit_reflection: 週間レポートのフィードバック
   app.post('/slack/interactive', async (req, res) => {
     console.log('Received interactive payload:', req.body);
@@ -70,18 +71,13 @@ function createApp(testMode = false) {
       const action = payload.actions[0];
       console.log('Action:', action);
       try {
-        // 週初めに送信した目標設定メッセージにて、目標追加ボタン -> 目標リストに追加して更新
-        if (action.action_id === 'add_goal') {
-          await goalSetting.handleGoalSubmission(payload, slack);
+        // 目標リストの「＋ 目標を追加」ボタン -> ポップアップを開く
+        if (action.action_id === 'open_add_goal') {
+          await goalSetting.openAddGoalModal(payload, slack);
 
-        // 目標リストを確定させる
-        } else if (action.action_id === 'finalize_goals') {
-          await goalSetting.finalizeGoalSetting(payload, slack);
-
-        // 目標リストから1つ目標削除
+        // 目標の「削除」ボタン -> リストから削除
         } else if (action.action_id.startsWith('delete_goal_')) {
-          const index = parseInt(action.action_id.split('_')[2]);
-          await goalSetting.deleteGoal(payload, slack, index);
+          await goalSetting.deleteGoal(payload, slack);
 
         // 週終わりに送信した週間レポートのフィードバックを受け取る -> スプレッドシートに記録
         } else if (action.action_id === 'submit_reflection') {
@@ -97,6 +93,16 @@ function createApp(testMode = false) {
         console.error('Error handling action:', error);
       }
 
+    // ポップアップの「追加」 -> 目標リストに追加
+    } else if (payload.type === 'view_submission' && payload.view.callback_id === 'add_goal_modal') {
+      try {
+        const response = await goalSetting.handleAddGoalSubmission(payload, slack);
+        if (response) {
+          return res.status(200).json(response);
+        }
+      } catch (error) {
+        console.error('Error adding goal:', error);
+      }
     }
 
     res.status(200).send('');

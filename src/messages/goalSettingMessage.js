@@ -1,127 +1,85 @@
-require('dotenv').config();
+const { emojiMapping } = require("../utils/emojiMapping");
 
-const MAX_GOALS = 15;
+// 週間レポート側（statusDetector）はメッセージの text を
+// 「今週の目標です：\n1. 目標 :emoji:」の形式で読み取るため、目標がある間は text をこの形式に保つ
+function goalListText(goals) {
+  return [
+    "今週の目標です：",
+    ...goals.map((goal, index) => `${index + 1}. ${goal.text} :${goal.emoji}:`),
+  ].join("\n");
+}
 
-function createGoalSettingMessage(userId) {
-  return {
-    blocks: [
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: `<@${userId}>\n今週の目標を入力してください：`
-        }
+// 目標リストのメッセージ（日曜に送信し、目標を追加するたびに書き換える）
+function goalListMessage(userId, goals = []) {
+  const blocks = [
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `<@${userId}>\n今週の目標を設定しよう！`,
       },
+    },
+  ];
+
+  // 目標ごとに1行ずつ、右端に削除ボタンを付ける
+  goals.forEach((goal, index) => {
+    blocks.push({
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `${index + 1}. ${emojiMapping[goal.emoji].notion} ${goal.text}`,
+      },
+      accessory: {
+        type: "button",
+        text: { type: "plain_text", text: "削除" },
+        action_id: `delete_goal_${index}`,
+        value: goal.emoji,
+      },
+    });
+  });
+
+  blocks.push({
+    type: "actions",
+    elements: [
+      {
+        type: "button",
+        text: { type: "plain_text", text: "＋ 目標を追加" },
+        action_id: "open_add_goal",
+      },
+    ],
+  });
+
+  return {
+    text: goals.length > 0 ? goalListText(goals) : "今週の目標を設定しよう！",
+    blocks,
+  };
+}
+
+// 「＋ 目標を追加」で開くポップアップ
+function addGoalModal(channelId, messageTs) {
+  return {
+    type: "modal",
+    callback_id: "add_goal_modal",
+    private_metadata: JSON.stringify({ channelId, messageTs }),
+    title: { type: "plain_text", text: "目標を追加" },
+    submit: { type: "plain_text", text: "追加" },
+    close: { type: "plain_text", text: "キャンセル" },
+    blocks: [
       {
         type: "input",
         block_id: "goal_input",
         element: {
           type: "plain_text_input",
           action_id: "goal_value",
-          placeholder: {
-            type: "plain_text",
-            text: "目標を入力してください"
-          }
+          placeholder: { type: "plain_text", text: "目標を入力してください" },
         },
-        label: {
-          type: "plain_text",
-          text: "目標"
-        }
+        label: { type: "plain_text", text: "目標" },
       },
-      {
-        type: "actions",
-        elements: [
-          {
-            type: "button",
-            text: {
-              type: "plain_text",
-              text: "追加"
-            },
-            style: "primary",
-            action_id: "add_goal"
-          }
-        ]
-      },
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: "*今週の目標リスト：*"
-        }
-      },
-      {
-        type: "context",
-        elements: [
-          {
-            type: "mrkdwn",
-            text: "目標はまだ追加されていません。"
-          }
-        ]
-      },
-      {
-        type: "actions",
-        elements: [
-          {
-            type: "button",
-            text: {
-              type: "plain_text",
-              text: "目標設定完了"
-            },
-            style: "danger",
-            action_id: "finalize_goals"
-          }
-        ]
-      }
-    ]
+    ],
   };
 }
 
-function updateGoalSettingMessage(goals) {
-  const updatedBlocks = [...createGoalSettingMessage().blocks];
-
-  const goalListIndex = updatedBlocks.findIndex(block =>
-    block.type === "section" && block.text.text === "*今週の目標リスト：*"
-  );
-
-  if (goals.length > 0) {
-    updatedBlocks[goalListIndex + 1] = {
-      type: "context",
-      elements: goals.map((goal, index) => ({
-        type: "mrkdwn",
-        text: `${index + 1}. ${goal.text}`
-      }))
-    };
-
-    // Add delete buttons for each goal with unique action_ids
-    updatedBlocks.splice(goalListIndex + 2, 0, {
-      type: "actions",
-      elements: goals.map((goal, index) => ({
-        type: "button",
-        text: {
-          type: "plain_text",
-          text: "削除"
-        },
-        style: "danger",
-        action_id: `delete_goal_${index}`,
-        value: index.toString()
-      }))
-    });
-  }
-
-  if (goals.length >= MAX_GOALS) {
-    updatedBlocks.push({
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: `:warning: 目標の数が上限（${MAX_GOALS}個）に達しています。これ以上追加できません。`
-      }
-    });
-  }
-
-  return { blocks: updatedBlocks };
-}
-
 module.exports = {
-  createGoalSettingMessage,
-  updateGoalSettingMessage
+  goalListMessage,
+  addGoalModal,
 };
