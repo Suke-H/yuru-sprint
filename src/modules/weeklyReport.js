@@ -1,5 +1,5 @@
 const { detectStatuses } = require("./statusDetector");
-const { weeklyReportMessage } = require("../messages/weeklyReportMessage");
+const { weeklyReportMessage, weeklyReportResultMessage } = require("../messages/weeklyReportMessage");
 const { sendWeeklyDataToSpreadsheet } = require("./sendToSpreadsheet");
 const { emojiMapping } = require("../utils/emojiMapping");
 const { USERS } = require("../config");
@@ -76,6 +76,13 @@ async function handleUserFeedback(payload, slack) {
     );
 
     console.log("Data sent to Spreadsheet successfully");
+
+    // 記録できたら、元のレポートを操作できない結果表示に置き換える
+    await slack.chat.update({
+      channel: payload.channel.id,
+      ts: payload.message.ts,
+      ...weeklyReportResultMessage(updatedGoals),
+    });
 
     await slack.chat.postMessage({
       channel: payload.channel.id,

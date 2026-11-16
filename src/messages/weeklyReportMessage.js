@@ -81,6 +81,26 @@ function weeklyReportMessage(userId, goals, period) {
   };
 }
 
+// 振り返り送信後に元のレポートを置き換える、操作できない結果表示
+function weeklyReportResultMessage(goals) {
+  const text = goals
+    .map((goal, index) =>
+      `${index + 1}. ${emojiMapping[goal.emoji].notion} ${goal.text} ${goal.isCompleted ? "✅ 達成" : "⬜ 未達成"}`
+    )
+    .join("\n");
+
+  return {
+    text,
+    blocks: [
+      {
+        type: "section",
+        text: { type: "mrkdwn", text },
+      },
+    ],
+  };
+}
+
 module.exports = {
   weeklyReportMessage,
+  weeklyReportResultMessage,
 };
