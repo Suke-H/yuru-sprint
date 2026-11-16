@@ -52,7 +52,7 @@ function createApp(testMode = false) {
 
   // Interactive API
   // - open_add_goal: 目標追加のポップアップを開く
-  // - delete_goal_*: 目標を削除
+  // - delete_goal: 「目標を削除」メニューから目標を削除
   // - add_goal_modal: ポップアップから目標を追加
   // - submit_reflection: 週間レポートのフィードバック
   app.post('/slack/interactive', async (req, res) => {
@@ -75,8 +75,8 @@ function createApp(testMode = false) {
         if (action.action_id === 'open_add_goal') {
           await goalSetting.openAddGoalModal(payload, slack);
 
-        // 目標の「削除」ボタン -> リストから削除
-        } else if (action.action_id.startsWith('delete_goal_')) {
+        // 「目標を削除」メニュー -> リストから削除（delete_goal_* は以前の形式の削除ボタン）
+        } else if (action.action_id.startsWith('delete_goal')) {
           await goalSetting.deleteGoal(payload, slack);
 
         // 週終わりに送信した週間レポートのフィードバックを受け取る -> スプレッドシートに記録

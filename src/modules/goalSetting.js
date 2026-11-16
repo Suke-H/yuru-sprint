@@ -73,11 +73,13 @@ async function handleAddGoalSubmission(payload, slack) {
   return null;
 }
 
-// 目標の「削除」ボタン -> リストから消し、Bot のスタンプを外す
+// 「目標を削除」メニューで目標を選択 -> リストから消し、Bot のスタンプを外す
 async function deleteGoal(payload, slack) {
   const channelId = payload.channel.id;
   const messageTs = payload.message.ts;
-  const { emoji } = JSON.parse(payload.actions[0].value);
+  // 以前の形式（目標ごとの削除ボタン）は action.value に入っている
+  const action = payload.actions[0];
+  const { emoji } = JSON.parse(action.selected_option ? action.selected_option.value : action.value);
 
   const { userId, goals } = readGoalMessage(payload.message);
   const remainingGoals = goals.filter((goal) => goal.emoji !== emoji);
