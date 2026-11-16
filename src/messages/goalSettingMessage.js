@@ -1,12 +1,11 @@
 const { emojiMapping } = require("../utils/emojiMapping");
 
-// 週間レポート側（statusDetector）はメッセージの text を
-// 「今週の目標です：\n1. 目標 :emoji:」の形式で読み取るため、目標がある間は text をこの形式に保つ
-function goalListText(goals) {
-  return [
-    "今週の目標です：",
-    ...goals.map((goal, index) => `${index + 1}. ${goal.text} :${goal.emoji}:`),
-  ].join("\n");
+// 目標リストのメッセージから目標を読み取る
+// 各目標の削除ボタンの value に { emoji, text } を JSON で持たせている
+function goalsFromBlocks(blocks = []) {
+  return blocks
+    .filter((block) => block.accessory && block.accessory.action_id.startsWith("delete_goal_"))
+    .map((block) => JSON.parse(block.accessory.value));
 }
 
 // 目標リストのメッセージ（日曜に送信し、目標を追加するたびに書き換える）
@@ -33,7 +32,7 @@ function goalListMessage(userId, goals = []) {
         type: "button",
         text: { type: "plain_text", text: "削除" },
         action_id: `delete_goal_${index}`,
-        value: goal.emoji,
+        value: JSON.stringify({ emoji: goal.emoji, text: goal.text }),
       },
     });
   });
@@ -50,17 +49,18 @@ function goalListMessage(userId, goals = []) {
   });
 
   return {
-    text: goals.length > 0 ? goalListText(goals) : "今週の目標を設定しよう！",
+    text: "今週の目標を設定しよう！",
     blocks,
   };
 }
 
 // 「＋ 目標を追加」で開くポップアップ
-function addGoalModal(channelId, messageTs) {
+// 開いた時点のリストを private_metadata に持たせ、追加時はそれに1件足す
+function addGoalModal(channelId, messageTs, userId, goals, reactedEmojis) {
   return {
     type: "modal",
     callback_id: "add_goal_modal",
-    private_metadata: JSON.stringify({ channelId, messageTs }),
+    private_metadata: JSON.stringify({ channelId, messageTs, userId, goals, reactedEmojis }),
     title: { type: "plain_text", text: "目標を追加" },
     submit: { type: "plain_text", text: "追加" },
     close: { type: "plain_text", text: "キャンセル" },
@@ -71,6 +71,7 @@ function addGoalModal(channelId, messageTs) {
         element: {
           type: "plain_text_input",
           action_id: "goal_value",
+          max_length: 100,
           placeholder: { type: "plain_text", text: "目標を入力してください" },
         },
         label: { type: "plain_text", text: "目標" },
@@ -81,5 +82,6 @@ function addGoalModal(channelId, messageTs) {
 
 module.exports = {
   goalListMessage,
+  goalsFromBlocks,
   addGoalModal,
 };

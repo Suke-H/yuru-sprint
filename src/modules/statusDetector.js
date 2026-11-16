@@ -1,4 +1,5 @@
 const { emojiMapping } = require("../utils/emojiMapping");
+const { goalsFromBlocks } = require("../messages/goalSettingMessage");
 
 async function detectStatuses(slack, channelId) {
   try {
@@ -54,10 +55,12 @@ async function getWeeklyGoals(slack, channelId) {
     });
 
     // 最新の非空の目標メッセージを探す
+    // 新形式: 目標リストのブロック（削除ボタンの value）に目標を持つ
+    // 旧形式: text が「今週の目標です：\n1. 目標 :emoji:」
     const goalMessage = result.messages.find(
       (msg) =>
-        msg.text.startsWith("今週の目標です：") &&
-        msg.text.split("\n").length > 1
+        goalsFromBlocks(msg.blocks).length > 0 ||
+        (msg.text.startsWith("今週の目標です：") && msg.text.split("\n").length > 1)
     );
 
     if (!goalMessage) {
@@ -67,21 +70,18 @@ async function getWeeklyGoals(slack, channelId) {
 
     console.log("Found goal message:", goalMessage.text);
 
-    const goals = goalMessage.text
-      .split("\n")
-      .slice(1)
-      .map((line) => {
-        const match = line.match(/(\d+)\. (.*?) :(.*?):/);
-        if (match) {
-          return {
-            text: match[2],
-            emoji: match[3],
-            messageTs: goalMessage.ts,
-          };
-        }
-        return null;
-      })
-      .filter(Boolean);
+    const blockGoals = goalsFromBlocks(goalMessage.blocks);
+    const goals = (blockGoals.length > 0
+      ? blockGoals
+      : goalMessage.text
+          .split("\n")
+          .slice(1)
+          .map((line) => {
+            const match = line.match(/(\d+)\. (.*?) :(.*?):/);
+            return match ? { text: match[2], emoji: match[3] } : null;
+          })
+          .filter(Boolean)
+    ).map((goal) => ({ ...goal, messageTs: goalMessage.ts }));
 
     const startDate = new Date(parseInt(goalMessage.ts.split(".")[0]) * 1000)
       .toISOString()

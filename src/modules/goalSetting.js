@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const { emojiMapping } = require("../utils/emojiMapping");
-const { goalListMessage, addGoalModal } = require("../messages/goalSettingMessage");
+const { goalListMessage, goalsFromBlocks, addGoalModal } = require("../messages/goalSettingMessage");
 const { USERS } = require("../config");
 
 const MAX_GOALS = 15;
@@ -25,20 +25,20 @@ async function initiateGoalSetting(slack) {
 }
 
 // 「＋ 目標を追加」ボタン -> ポップアップを開く
+// ボタンが押された時点のメッセージ（payload.message）から、今のリストを読み取ってポップアップに持たせる
 async function openAddGoalModal(payload, slack) {
+  const { userId, goals, reactedEmojis } = readGoalMessage(payload.message);
   await slack.views.open({
     trigger_id: payload.trigger_id,
-    view: addGoalModal(payload.channel.id, payload.message.ts),
+    view: addGoalModal(payload.channel.id, payload.message.ts, userId, goals, reactedEmojis),
   });
 }
 
 // ポップアップの「追加」 -> リストに追加し、絵文字のスタンプを付ける
 // 戻り値: ポップアップを閉じずにエラーを出すときは Slack へ返すレスポンス、閉じてよいときは null
 async function handleAddGoalSubmission(payload, slack) {
-  const { channelId, messageTs } = JSON.parse(payload.view.private_metadata);
+  const { channelId, messageTs, userId, goals, reactedEmojis } = JSON.parse(payload.view.private_metadata);
   const goalText = payload.view.state.values.goal_input.goal_value.value.trim();
-
-  const { userId, goals, reactedEmojis } = await getCurrentGoals(slack, channelId, messageTs);
 
   if (goals.length >= MAX_GOALS) {
     return {
@@ -77,9 +77,9 @@ async function handleAddGoalSubmission(payload, slack) {
 async function deleteGoal(payload, slack) {
   const channelId = payload.channel.id;
   const messageTs = payload.message.ts;
-  const emoji = payload.actions[0].value;
+  const { emoji } = JSON.parse(payload.actions[0].value);
 
-  const { userId, goals } = await getCurrentGoals(slack, channelId, messageTs);
+  const { userId, goals } = readGoalMessage(payload.message);
   const remainingGoals = goals.filter((goal) => goal.emoji !== emoji);
 
   await slack.chat.update({
@@ -101,27 +101,11 @@ async function deleteGoal(payload, slack) {
   console.log(`Goal deleted: :${emoji}:`);
 }
 
-// 目標リストのメッセージから、宛先ユーザーと現在の目標を読み取る
-async function getCurrentGoals(slack, channelId, messageTs) {
-  const result = await slack.conversations.history({
-    channel: channelId,
-    latest: messageTs,
-    inclusive: true,
-    limit: 1,
-  });
-
-  const message = result.messages[0];
+// 目標リストのメッセージから、宛先ユーザー・現在の目標・付いているスタンプを読み取る
+function readGoalMessage(message) {
   const userId = message.blocks[0].text.text.match(/<@([^>]+)>/)[1];
-  const goals = message.text
-    .split("\n")
-    .slice(1)
-    .map((line) => {
-      const match = line.match(/(\d+)\. (.*?) :(.*?):/);
-      return match ? { text: match[2], emoji: match[3] } : null;
-    })
-    .filter(Boolean);
+  const goals = goalsFromBlocks(message.blocks);
   const reactedEmojis = (message.reactions || []).map((reaction) => reaction.name);
-
   return { userId, goals, reactedEmojis };
 }
 
